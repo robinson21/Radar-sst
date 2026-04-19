@@ -1,29 +1,11 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": "vite",
-  "functions": {
-    "api/index.ts": {
-      "maxDuration": 120
-    },
-    "api/cron/scan.ts": {
-      "maxDuration": 120
-    }
-  },
+  "framework": null,
   "crons": [
     {
       "path": "/api/cron/scan",
       "schedule": "0 9 * * *"
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
     }
   ]
 }
