@@ -4,8 +4,18 @@
   "framework": null,
   "crons": [
     {
-      "path": "/api/cron/scan",
+      "path": "api/cron/scan",
       "schedule": "0 9 * * *"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/cron/scan",
+      "destination": "/api/cron/scan"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.ts"
     }
   ]
 }
