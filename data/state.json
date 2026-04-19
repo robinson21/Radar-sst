@@ -1,0 +1,941 @@
+{
+  "companyProfile": {
+    "legalName": "ESMAX SPA",
+    "industry": "Energia,  Combustibles, Retail",
+    "headcount": 2500,
+    "riskLevel": "III",
+    "hasContractors": true,
+    "sites": [
+      "Casa Matriz Santiago",
+      "Todo chile"
+    ],
+    "administrator": "ACHS"
+  },
+  "updates": [
+    {
+      "id": "remote-minsal-servicios-de-salud",
+      "title": "Servicios de Salud",
+      "source": "MINSAL",
+      "category": "Higiene ocupacional",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Contenido SST identificado en enlace oficial de Ministerio de Salud.",
+      "applicabilityReason": "El texto remoto contiene palabras clave relacionadas con SST monitoreadas por el agente.",
+      "officialUrl": "https://www.minsal.cl/servicios-de-salud/",
+      "keyPoints": [
+        "Extraído desde página oficial en modo remoto.",
+        "Pendiente de clasificación jurídica más precisa.",
+        "Disponible para cruce con temas vigilados."
+      ]
+    },
+    {
+      "id": "remote-minsal-documentos-subsecretar-a-de-salud-p-blica",
+      "title": "Documentos Subsecretaría de Salud Pública",
+      "source": "MINSAL",
+      "category": "Higiene ocupacional",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Contenido SST identificado en enlace oficial de Ministerio de Salud.",
+      "applicabilityReason": "El texto remoto contiene palabras clave relacionadas con SST monitoreadas por el agente.",
+      "officialUrl": "https://www.minsal.cl/documentos-subsecretaria-de-salud-publica/",
+      "keyPoints": [
+        "Extraído desde página oficial en modo remoto.",
+        "Pendiente de clasificación jurídica más precisa.",
+        "Disponible para cruce con temas vigilados."
+      ]
+    },
+    {
+      "id": "remote-minsal-documentos-ministerio-de-salud",
+      "title": "Documentos Ministerio de Salud",
+      "source": "MINSAL",
+      "category": "Higiene ocupacional",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Contenido SST identificado en enlace oficial de Ministerio de Salud.",
+      "applicabilityReason": "El texto remoto contiene palabras clave relacionadas con SST monitoreadas por el agente.",
+      "officialUrl": "https://www.minsal.cl/documentos-ministerio-de-salud/",
+      "keyPoints": [
+        "Extraído desde página oficial en modo remoto.",
+        "Pendiente de clasificación jurídica más precisa.",
+        "Disponible para cruce con temas vigilados."
+      ]
+    },
+    {
+      "id": "remote-minsal-hitos-de-la-salud-chilena",
+      "title": "Hitos de la salud chilena",
+      "source": "MINSAL",
+      "category": "Higiene ocupacional",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Contenido SST identificado en enlace oficial de Ministerio de Salud.",
+      "applicabilityReason": "El texto remoto contiene palabras clave relacionadas con SST monitoreadas por el agente.",
+      "officialUrl": "https://www.minsal.cl/hitos-de-la-salud-chilena/",
+      "keyPoints": [
+        "Extraído desde página oficial en modo remoto.",
+        "Pendiente de clasificación jurídica más precisa.",
+        "Disponible para cruce con temas vigilados."
+      ]
+    },
+    {
+      "id": "remote-minsal-historia-del-ministerio-de-salud",
+      "title": "Historia del Ministerio de Salud",
+      "source": "MINSAL",
+      "category": "Higiene ocupacional",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Contenido SST identificado en enlace oficial de Ministerio de Salud.",
+      "applicabilityReason": "El texto remoto contiene palabras clave relacionadas con SST monitoreadas por el agente.",
+      "officialUrl": "https://www.minsal.cl/historia-del-minsal/",
+      "keyPoints": [
+        "Extraído desde página oficial en modo remoto.",
+        "Pendiente de clasificación jurídica más precisa.",
+        "Disponible para cruce con temas vigilados."
+      ]
+    },
+    {
+      "id": "remote-dt-prevenci-n-del-acoso-laboral-sexual-y-violencia-en-el-trabajo-ejercida-por-terce",
+      "title": "Prevención del acoso laboral, sexual y violencia en el trabajo ejercida por terceros",
+      "source": "DT",
+      "category": "Seguridad en el trabajo",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Contenido SST identificado en enlace oficial de Dirección del Trabajo.",
+      "applicabilityReason": "El texto remoto contiene palabras clave relacionadas con SST monitoreadas por el agente.",
+      "officialUrl": "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-194681.html",
+      "keyPoints": [
+        "Extraído desde página oficial en modo remoto.",
+        "Pendiente de clasificación jurídica más precisa.",
+        "Disponible para cruce con temas vigilados."
+      ]
+    },
+    {
+      "id": "remote-dt-c-d-del-trabajo-leychile",
+      "title": "Cód. del Trabajo LeyChile",
+      "source": "DT",
+      "category": "Seguridad en el trabajo",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Contenido SST identificado en enlace oficial de Dirección del Trabajo.",
+      "applicabilityReason": "El texto remoto contiene palabras clave relacionadas con SST monitoreadas por el agente.",
+      "officialUrl": "https://www.dt.gob.cl/legislacion/1624/w3-propertyname-2485.html",
+      "keyPoints": [
+        "Extraído desde página oficial en modo remoto.",
+        "Pendiente de clasificación jurídica más precisa.",
+        "Disponible para cruce con temas vigilados."
+      ]
+    },
+    {
+      "id": "remote-dt-dt-direcci-n-del-trabajo",
+      "title": "--> DT Dirección del Trabajo",
+      "source": "DT",
+      "category": "Seguridad en el trabajo",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Contenido SST identificado en enlace oficial de Dirección del Trabajo.",
+      "applicabilityReason": "El texto remoto contiene palabras clave relacionadas con SST monitoreadas por el agente.",
+      "officialUrl": "https://www.dt.gob.cl/portal/1626/w3-channel.html",
+      "keyPoints": [
+        "Extraído desde página oficial en modo remoto.",
+        "Pendiente de clasificación jurídica más precisa.",
+        "Disponible para cruce con temas vigilados."
+      ]
+    },
+    {
+      "id": "remote-dt-ministerio-del-trabajo-y-previsi-n-social",
+      "title": "Ministerio del Trabajo y Previsión Social",
+      "source": "DT",
+      "category": "Seguridad en el trabajo",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Hallazgo remoto detectado desde Dirección del Trabajo. Requiere revisión y clasificación fina.",
+      "applicabilityReason": "Coincide con términos SST monitoreados para Dirección del Trabajo.",
+      "officialUrl": "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-194680.html",
+      "keyPoints": [
+        "Hallazgo detectado por integración remota inicial.",
+        "Debe validarse alcance regulatorio antes de accionar.",
+        "El snapshot remoto quedó almacenado localmente."
+      ]
+    },
+    {
+      "id": "remote-dt-seguridad-en-el-trabajo",
+      "title": "Seguridad en el trabajo",
+      "source": "DT",
+      "category": "Seguridad en el trabajo",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Hallazgo remoto detectado desde Dirección del Trabajo. Requiere revisión y clasificación fina.",
+      "applicabilityReason": "Coincide con términos SST monitoreados para Dirección del Trabajo.",
+      "officialUrl": "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-194680.html",
+      "keyPoints": [
+        "Hallazgo detectado por integración remota inicial.",
+        "Debe validarse alcance regulatorio antes de accionar.",
+        "El snapshot remoto quedó almacenado localmente."
+      ]
+    },
+    {
+      "id": "remote-suseso-seguro-social-contra-riesgos-de-accidentes-del-trabajo-y-enfermedades-profesiona",
+      "title": "Seguro Social contra Riesgos de Accidentes del Trabajo y Enfermedades Profesionales",
+      "source": "SUSESO",
+      "category": "Gestión preventiva",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Contenido SST identificado en enlace oficial de Superintendencia de Seguridad Social.",
+      "applicabilityReason": "El texto remoto contiene palabras clave relacionadas con SST monitoreadas por el agente.",
+      "officialUrl": "https://www.suseso.cl/613/w3-article-480910.html",
+      "keyPoints": [
+        "Extraído desde página oficial en modo remoto.",
+        "Pendiente de clasificación jurídica más precisa.",
+        "Disponible para cruce con temas vigilados."
+      ]
+    },
+    {
+      "id": "remote-suseso-traspaso-de-informaci-n-de-la-vigilancia-ambiental-y-de-la-salud-entre-organismo",
+      "title": "Traspaso de información de la vigilancia ambiental y de la salud entre organismos administradores",
+      "source": "SUSESO",
+      "category": "Gestión preventiva",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Contenido SST identificado en enlace oficial de Superintendencia de Seguridad Social.",
+      "applicabilityReason": "El texto remoto contiene palabras clave relacionadas con SST monitoreadas por el agente.",
+      "officialUrl": "https://www.suseso.cl/613/w3-article-748540.html",
+      "keyPoints": [
+        "Extraído desde página oficial en modo remoto.",
+        "Pendiente de clasificación jurídica más precisa.",
+        "Disponible para cruce con temas vigilados."
+      ]
+    },
+    {
+      "id": "remote-suseso-elaboraci-n-e-implementaci-n-del-protocolo-de-prevenci-n-del-acoso-sexual-labora",
+      "title": "Elaboración e implementación del protocolo de prevención del acoso sexual, laboral y la violencia en el trabajo",
+      "source": "SUSESO",
+      "category": "Gestión preventiva",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Contenido SST identificado en enlace oficial de Superintendencia de Seguridad Social.",
+      "applicabilityReason": "El texto remoto contiene palabras clave relacionadas con SST monitoreadas por el agente.",
+      "officialUrl": "https://www.suseso.cl/613/w3-article-732369.html",
+      "keyPoints": [
+        "Extraído desde página oficial en modo remoto.",
+        "Pendiente de clasificación jurídica más precisa.",
+        "Disponible para cruce con temas vigilados."
+      ]
+    },
+    {
+      "id": "remote-suseso-superintendencia-de-seguridad-social-suseso-gobierno-de-chile",
+      "title": "Superintendencia de Seguridad Social (SUSESO) - Gobierno de Chile",
+      "source": "SUSESO",
+      "category": "Gestión preventiva",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Contenido SST identificado en enlace oficial de Superintendencia de Seguridad Social.",
+      "applicabilityReason": "El texto remoto contiene palabras clave relacionadas con SST monitoreadas por el agente.",
+      "officialUrl": "https://www.suseso.cl/601/w3-channel.html",
+      "keyPoints": [
+        "Extraído desde página oficial en modo remoto.",
+        "Pendiente de clasificación jurídica más precisa.",
+        "Disponible para cruce con temas vigilados."
+      ]
+    },
+    {
+      "id": "remote-suseso-compendio-de-normas-del-seguro-social-de-accidentes-del-trabajo-y-enfermedades-p",
+      "title": "Compendio de Normas del Seguro Social de Accidentes del Trabajo y Enfermedades Profesionales",
+      "source": "SUSESO",
+      "category": "Gestión preventiva",
+      "publishedAt": "2026-04-19",
+      "effectiveAt": "2026-04-19",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Hallazgo remoto detectado desde Superintendencia de Seguridad Social. Requiere revisión y clasificación fina.",
+      "applicabilityReason": "Coincide con términos SST monitoreados para Superintendencia de Seguridad Social.",
+      "officialUrl": "https://www.suseso.cl/613/w3-propertyvalue-68955.html",
+      "keyPoints": [
+        "Hallazgo detectado por integración remota inicial.",
+        "Debe validarse alcance regulatorio antes de accionar.",
+        "El snapshot remoto quedó almacenado localmente."
+      ]
+    },
+    {
+      "id": "upd-vigilancia-ambiental",
+      "title": "Ajuste de foco en vigilancia de agentes físicos y ambientales por centro de trabajo",
+      "source": "MINSAL",
+      "category": "Higiene ocupacional",
+      "publishedAt": "2026-04-18",
+      "effectiveAt": "2026-04-18",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "El monitoreo diario levanta recordatorio regulatorio sobre evaluación de exposición a ruido, ventilación y condiciones de ambiente laboral.",
+      "applicabilityReason": "Aplica por existir bodegas y faenas con exposición operacional y por obligación general de control ambiental.",
+      "officialUrl": "https://www.minsal.cl",
+      "keyPoints": [
+        "Debe existir programa de mediciones cuando el riesgo lo amerita.",
+        "La evaluación debe vincularse al mapa de riesgos.",
+        "La evidencia debe mantenerse por centro de trabajo."
+      ]
+    },
+    {
+      "id": "upd-comite-paritario",
+      "title": "Refuerzo de obligaciones sobre Comité Paritario y trazabilidad de acuerdos",
+      "source": "SUSESO",
+      "category": "Gobernanza SST",
+      "publishedAt": "2026-04-18",
+      "effectiveAt": "2026-04-18",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "Se detecta criterio que refuerza la necesidad de registrar acuerdos, investigaciones y medidas adoptadas por el Comité Paritario.",
+      "applicabilityReason": "La empresa supera 25 trabajadores y requiere verificar constitución, funcionamiento y respaldo de actas.",
+      "officialUrl": "https://www.suseso.cl/613/w3-propertyvalue-69075.html",
+      "keyPoints": [
+        "Deben mantenerse actas y seguimiento de acuerdos.",
+        "El comité participa en investigación y vigilancia preventiva.",
+        "La evidencia documental debe estar disponible en fiscalización."
+      ]
+    },
+    {
+      "id": "upd-reglamento-subcontratacion",
+      "title": "Refuerzo del deber de coordinación preventiva en trabajo en régimen de subcontratación",
+      "source": "BCN",
+      "category": "Subcontratación",
+      "publishedAt": "2026-04-18",
+      "effectiveAt": "2026-04-18",
+      "impactLevel": "medio",
+      "status": "nuevo",
+      "summary": "El snapshot de BCN prioriza obligaciones de coordinación entre empresa principal, contratistas y subcontratistas para control de riesgos.",
+      "applicabilityReason": "Aplica cuando la empresa declara subcontratación y mantiene más de un centro de trabajo con terceros.",
+      "officialUrl": "https://www.bcn.cl",
+      "keyPoints": [
+        "Debe existir coordinación de riesgos y responsabilidades.",
+        "Se requiere trazabilidad de inducciones y controles compartidos.",
+        "La documentación preventiva debe ser exigible a contratistas."
+      ]
+    },
+    {
+      "id": "upd-ds-594",
+      "title": "DS 594: condiciones sanitarias y ambientales básicas en lugares de trabajo",
+      "source": "BCN",
+      "category": "Condiciones sanitarias",
+      "publishedAt": "1999-09-15",
+      "effectiveAt": "2000-01-01",
+      "impactLevel": "alto",
+      "status": "monitoreado",
+      "summary": "Regula ventilación, servicios higiénicos, agua potable, iluminación, agentes físicos y condiciones mínimas de higiene industrial.",
+      "applicabilityReason": "Aplica a todos los centros de trabajo informados por la empresa y es base de fiscalización sanitaria.",
+      "officialUrl": "https://www.bcn.cl/leychile/navegar?idNorma=167766",
+      "keyPoints": [
+        "Todo centro debe contar con servicios higiénicos adecuados.",
+        "Las condiciones ambientales deben evaluarse y controlarse.",
+        "La evidencia operativa es fiscalizable en terreno."
+      ]
+    },
+    {
+      "id": "upd-ley-16744",
+      "title": "Ley 16.744 y obligaciones preventivas del empleador",
+      "source": "SUSESO",
+      "category": "Gestión preventiva",
+      "publishedAt": "1968-02-01",
+      "effectiveAt": "1968-05-01",
+      "impactLevel": "alto",
+      "status": "en_revision",
+      "summary": "Consolida deberes de prevención, implementación de medidas, entrega de elementos de protección y coordinación con el organismo administrador.",
+      "applicabilityReason": "Aplica por ser entidad empleadora adherida a organismo administrador y por exposición a riesgos operacionales.",
+      "officialUrl": "https://www.suseso.cl/613/w3-propertyvalue-68955.html",
+      "keyPoints": [
+        "Debe implementarse la gestión preventiva prescrita por normativa y organismo administrador.",
+        "El empleador debe proveer elementos de protección personal sin costo.",
+        "Se requiere seguimiento formal de medidas correctivas."
+      ]
+    },
+    {
+      "id": "upd-ley-karin",
+      "title": "Ley Karin y procedimiento de investigación por acoso, violencia y riesgos psicosociales",
+      "source": "DT",
+      "category": "Riesgos psicosociales",
+      "publishedAt": "2025-06-03",
+      "effectiveAt": "2024-08-01",
+      "impactLevel": "alto",
+      "status": "nuevo",
+      "summary": "La Dirección del Trabajo refuerza plazos y reglas del procedimiento de investigación, y exige medidas de resguardo y protocolos preventivos actualizados.",
+      "applicabilityReason": "Aplica porque la empresa cuenta con trabajadores dependientes, reglamento interno y obligación de prevención frente a acoso y violencia en el trabajo.",
+      "officialUrl": "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-192736.html",
+      "keyPoints": [
+        "Debe existir protocolo preventivo comunicado a toda la organización.",
+        "Las investigaciones tienen plazos reglados y requieren resguardo documentado.",
+        "Las medidas deben integrarse al reglamento interno o protocolo equivalente."
+      ]
+    }
+  ],
+  "obligations": [
+    {
+      "id": "obl-comite-paritario",
+      "updateId": "upd-comite-paritario",
+      "title": "Regularizar actas, acuerdos y plan de seguimiento del Comité Paritario",
+      "area": "Comité Paritario",
+      "priority": "medio",
+      "applies": true,
+      "status": "pendiente",
+      "basis": "La dotación reportada exige verificar funcionamiento formal del comité.",
+      "howToComply": [
+        "Consolidar actas de constitución y sesiones.",
+        "Crear registro de acuerdos con responsables y fechas.",
+        "Vincular acuerdos con investigaciones y acciones correctivas."
+      ],
+      "evidence": [
+        "Libro o repositorio de actas.",
+        "Planilla de seguimiento.",
+        "Firma o validación de integrantes."
+      ],
+      "owner": "Presidencia Comité Paritario",
+      "dueDate": "2026-05-30"
+    },
+    {
+      "id": "obl-subcontratacion",
+      "updateId": "upd-reglamento-subcontratacion",
+      "title": "Formalizar coordinación preventiva con contratistas y subcontratistas",
+      "area": "Subcontratación",
+      "priority": "medio",
+      "applies": true,
+      "status": "pendiente",
+      "basis": "La empresa declaró contratistas o subcontratistas y requiere coordinación preventiva.",
+      "howToComply": [
+        "Definir estándar mínimo documental para empresas contratistas.",
+        "Registrar inducciones, coordinación de riesgos y permisos de trabajo.",
+        "Exigir evidencias SST por empresa y centro de trabajo."
+      ],
+      "evidence": [
+        "Matriz de contratistas vigentes.",
+        "Registros de inducción y coordinación.",
+        "Control documental por proveedor."
+      ],
+      "owner": "Administrador de Contratos",
+      "dueDate": "2026-06-05"
+    },
+    {
+      "id": "obl-protocolo-karin",
+      "updateId": "upd-ley-karin",
+      "title": "Mantener protocolo de prevención y procedimiento de investigación vigente",
+      "area": "Personas y Cumplimiento",
+      "priority": "alto",
+      "applies": true,
+      "status": "en_progreso",
+      "basis": "Empresa con trabajadores dependientes y obligación de prevenir acoso, violencia y riesgos psicosociales.",
+      "howToComply": [
+        "Actualizar el protocolo con medidas de prevención, denuncia, investigación y resguardo.",
+        "Integrar o alinear el reglamento interno con el procedimiento vigente.",
+        "Capacitar a jefaturas y registrar difusión a trabajadores."
+      ],
+      "evidence": [
+        "Protocolo firmado y fechado.",
+        "Registro de difusión y capacitaciones.",
+        "Trazabilidad de denuncias y medidas de resguardo."
+      ],
+      "owner": "Gerencia de Personas",
+      "dueDate": "2026-05-15"
+    },
+    {
+      "id": "obl-inspeccion-ds594",
+      "updateId": "upd-ds-594",
+      "title": "Levantar matriz de condiciones sanitarias por centro de trabajo",
+      "area": "Operaciones",
+      "priority": "alto",
+      "applies": true,
+      "status": "pendiente",
+      "basis": "Todos los centros declarados requieren control verificable de higiene y ambiente laboral.",
+      "howToComply": [
+        "Inspeccionar baños, agua potable, ventilación, iluminación y orden.",
+        "Definir hallazgos, responsables y plazo de cierre por sede.",
+        "Crear evidencia fotográfica y checklist trazable."
+      ],
+      "evidence": [
+        "Checklist por sede.",
+        "Plan de acción con fechas.",
+        "Registros fotográficos y cierres."
+      ],
+      "owner": "Jefatura de Operaciones",
+      "dueDate": "2026-05-02"
+    },
+    {
+      "id": "obl-programa-preventivo",
+      "updateId": "upd-ley-16744",
+      "title": "Formalizar programa anual de trabajo preventivo con seguimiento",
+      "area": "Prevención de Riesgos",
+      "priority": "medio",
+      "applies": true,
+      "status": "en_progreso",
+      "basis": "La empresa presenta dotación, contratistas y operaciones con riesgo que exigen gestión preventiva documentada.",
+      "howToComply": [
+        "Definir objetivos, responsables, frecuencia y KPI preventivos.",
+        "Coordinar medidas con el organismo administrador.",
+        "Registrar cumplimiento mensual y desviaciones."
+      ],
+      "evidence": [
+        "Programa anual aprobado.",
+        "Actas de seguimiento.",
+        "Indicadores mensuales de ejecución."
+      ],
+      "owner": "Asesor SST",
+      "dueDate": "2026-05-20"
+    }
+  ],
+  "documents": [
+    {
+      "id": "doc-plan-mediciones",
+      "name": "Programa de mediciones ambientales",
+      "type": "Programa técnico",
+      "status": "requiere_revision",
+      "linkedObligationIds": [
+        "obl-inspeccion-ds594"
+      ],
+      "lastGeneratedAt": "2026-04-19T03:07:10.570Z",
+      "description": "Define matriz de agentes, mediciones requeridas, frecuencia y trazabilidad."
+    },
+    {
+      "id": "doc-matriz-legal",
+      "name": "Matriz legal SST",
+      "type": "Base maestra",
+      "status": "listo",
+      "linkedObligationIds": [
+        "obl-protocolo-karin",
+        "obl-inspeccion-ds594",
+        "obl-programa-preventivo"
+      ],
+      "lastGeneratedAt": "2026-04-18T18:40:00.000Z",
+      "description": "Compila normas, criterios de aplicabilidad, responsables y evidencia esperada."
+    },
+    {
+      "id": "doc-plan-cierre",
+      "name": "Plan de cierre de brechas",
+      "type": "Plan de acción",
+      "status": "requiere_revision",
+      "linkedObligationIds": [
+        "obl-inspeccion-ds594",
+        "obl-programa-preventivo"
+      ],
+      "lastGeneratedAt": "2026-04-18T17:55:00.000Z",
+      "description": "Prioriza actividades y vencimientos según criticidad y estado."
+    },
+    {
+      "id": "doc-protocolo-karin",
+      "name": "Borrador protocolo Ley Karin",
+      "type": "Documento operativo",
+      "status": "faltante",
+      "linkedObligationIds": [
+        "obl-protocolo-karin"
+      ],
+      "lastGeneratedAt": null,
+      "description": "Plantilla para prevención, denuncia e investigación interna."
+    }
+  ],
+  "scanEvents": [
+    {
+      "id": "scan-1776568419191",
+      "executedAt": "2026-04-19T03:13:39.191Z",
+      "source": "BCN / SUSESO / DT / MINSAL",
+      "summary": "Escaneo manual ejecutado. 15 hallazgo(s) nuevos y 1 tema(s) SST cubiertos por la base actual.",
+      "findings": 15
+    },
+    {
+      "id": "scan-1776568167279",
+      "executedAt": "2026-04-19T03:09:27.279Z",
+      "source": "BCN / SUSESO / DT / MINSAL",
+      "summary": "Escaneo manual ejecutado sin novedades, con 1 tema(s) SST ya cubiertos por la base actual.",
+      "findings": 0
+    },
+    {
+      "id": "scan-1776568163129",
+      "executedAt": "2026-04-19T03:09:23.129Z",
+      "source": "BCN / SUSESO / DT / MINSAL",
+      "summary": "Escaneo manual ejecutado sin novedades, con 1 tema(s) SST ya cubiertos por la base actual.",
+      "findings": 0
+    },
+    {
+      "id": "scan-1776568146203",
+      "executedAt": "2026-04-19T03:09:06.203Z",
+      "source": "BCN / SUSESO / DT / MINSAL",
+      "summary": "Escaneo manual ejecutado sin novedades, con 1 tema(s) SST ya cubiertos por la base actual.",
+      "findings": 0
+    },
+    {
+      "id": "scan-1776568033125",
+      "executedAt": "2026-04-19T03:07:13.125Z",
+      "source": "BCN / SUSESO / DT / MINSAL",
+      "summary": "Escaneo manual ejecutado sin novedades, con 1 tema(s) SST ya cubiertos por la base actual.",
+      "findings": 0
+    },
+    {
+      "id": "scan-1776568032296",
+      "executedAt": "2026-04-19T03:07:12.296Z",
+      "source": "BCN / SUSESO / DT / MINSAL",
+      "summary": "Escaneo manual ejecutado sin novedades, con 1 tema(s) SST ya cubiertos por la base actual.",
+      "findings": 0
+    },
+    {
+      "id": "scan-1776568030571",
+      "executedAt": "2026-04-19T03:07:10.571Z",
+      "source": "BCN / SUSESO / DT / MINSAL",
+      "summary": "Escaneo manual ejecutado. 3 hallazgo(s) nuevos y 1 tema(s) SST cubiertos por la base actual.",
+      "findings": 3
+    },
+    {
+      "id": "scan-1",
+      "executedAt": "2026-04-18T12:05:00.000Z",
+      "source": "SUSESO / DT / BCN",
+      "summary": "Escaneo inicial del día con 3 cambios priorizados y 2 obligaciones nuevas o reforzadas.",
+      "findings": 3
+    },
+    {
+      "id": "scan-2",
+      "executedAt": "2026-04-17T12:00:00.000Z",
+      "source": "SUSESO",
+      "summary": "Sin cambios críticos; se mantuvo monitoreo de compendio preventivo.",
+      "findings": 1
+    }
+  ],
+  "ingestionRuns": [
+    {
+      "id": "ingest-MINSAL-1776568419189",
+      "source": "MINSAL",
+      "executedAt": "2026-04-19T03:13:38.442Z",
+      "mode": "remote",
+      "status": "ok",
+      "fetchedItems": 6,
+      "newItems": 5,
+      "officialUrl": "https://www.minsal.cl",
+      "note": "Se consultó fuente remota y se almacenó snapshot local (5 item(s) remotos detectados)."
+    },
+    {
+      "id": "ingest-DT-1776568418442",
+      "source": "DT",
+      "executedAt": "2026-04-19T03:13:38.142Z",
+      "mode": "remote",
+      "status": "ok",
+      "fetchedItems": 6,
+      "newItems": 5,
+      "officialUrl": "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-192736.html",
+      "note": "Se consultó fuente remota y se almacenó snapshot local (5 item(s) remotos detectados)."
+    },
+    {
+      "id": "ingest-SUSESO-1776568418141",
+      "source": "SUSESO",
+      "executedAt": "2026-04-19T03:13:37.870Z",
+      "mode": "remote",
+      "status": "ok",
+      "fetchedItems": 7,
+      "newItems": 5,
+      "officialUrl": "https://www.suseso.cl/613/w3-propertyvalue-68955.html",
+      "note": "Se consultó fuente remota y se almacenó snapshot local (5 item(s) remotos detectados)."
+    },
+    {
+      "id": "ingest-BCN-1776568417869",
+      "source": "BCN",
+      "executedAt": "2026-04-19T03:13:37.609Z",
+      "mode": "remote",
+      "status": "ok",
+      "fetchedItems": 2,
+      "newItems": 0,
+      "officialUrl": "https://www.bcn.cl",
+      "note": "Se consultó fuente remota y se almacenó snapshot local (0 item(s) remotos detectados)."
+    },
+    {
+      "id": "ingest-MINSAL-1776568167278",
+      "source": "MINSAL",
+      "executedAt": "2026-04-19T03:09:27.278Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 1,
+      "newItems": 0,
+      "officialUrl": "https://www.minsal.cl",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-DT-1776568167277",
+      "source": "DT",
+      "executedAt": "2026-04-19T03:09:27.277Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 1,
+      "newItems": 0,
+      "officialUrl": "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-192736.html",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-SUSESO-1776568167275",
+      "source": "SUSESO",
+      "executedAt": "2026-04-19T03:09:27.275Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 2,
+      "newItems": 0,
+      "officialUrl": "https://www.suseso.cl/613/w3-propertyvalue-68955.html",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-BCN-1776568167274",
+      "source": "BCN",
+      "executedAt": "2026-04-19T03:09:27.274Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 2,
+      "newItems": 0,
+      "officialUrl": "https://www.bcn.cl",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-MINSAL-1776568163128",
+      "source": "MINSAL",
+      "executedAt": "2026-04-19T03:09:23.128Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 1,
+      "newItems": 0,
+      "officialUrl": "https://www.minsal.cl",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-DT-1776568163128",
+      "source": "DT",
+      "executedAt": "2026-04-19T03:09:23.128Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 1,
+      "newItems": 0,
+      "officialUrl": "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-192736.html",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-SUSESO-1776568163126",
+      "source": "SUSESO",
+      "executedAt": "2026-04-19T03:09:23.126Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 2,
+      "newItems": 0,
+      "officialUrl": "https://www.suseso.cl/613/w3-propertyvalue-68955.html",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-BCN-1776568163125",
+      "source": "BCN",
+      "executedAt": "2026-04-19T03:09:23.125Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 2,
+      "newItems": 0,
+      "officialUrl": "https://www.bcn.cl",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-MINSAL-1776568146203",
+      "source": "MINSAL",
+      "executedAt": "2026-04-19T03:09:06.203Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 1,
+      "newItems": 0,
+      "officialUrl": "https://www.minsal.cl",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-DT-1776568146202",
+      "source": "DT",
+      "executedAt": "2026-04-19T03:09:06.202Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 1,
+      "newItems": 0,
+      "officialUrl": "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-192736.html",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-SUSESO-1776568146200",
+      "source": "SUSESO",
+      "executedAt": "2026-04-19T03:09:06.200Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 2,
+      "newItems": 0,
+      "officialUrl": "https://www.suseso.cl/613/w3-propertyvalue-68955.html",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-BCN-1776568146199",
+      "source": "BCN",
+      "executedAt": "2026-04-19T03:09:06.199Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 2,
+      "newItems": 0,
+      "officialUrl": "https://www.bcn.cl",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-MINSAL-1776568033124",
+      "source": "MINSAL",
+      "executedAt": "2026-04-19T03:07:13.124Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 1,
+      "newItems": 0,
+      "officialUrl": "https://www.minsal.cl",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-DT-1776568033124",
+      "source": "DT",
+      "executedAt": "2026-04-19T03:07:13.124Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 1,
+      "newItems": 0,
+      "officialUrl": "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-192736.html",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-SUSESO-1776568033122",
+      "source": "SUSESO",
+      "executedAt": "2026-04-19T03:07:13.122Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 2,
+      "newItems": 0,
+      "officialUrl": "https://www.suseso.cl/613/w3-propertyvalue-68955.html",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-BCN-1776568033121",
+      "source": "BCN",
+      "executedAt": "2026-04-19T03:07:13.121Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 2,
+      "newItems": 0,
+      "officialUrl": "https://www.bcn.cl",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-MINSAL-1776568032295",
+      "source": "MINSAL",
+      "executedAt": "2026-04-19T03:07:12.295Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 1,
+      "newItems": 0,
+      "officialUrl": "https://www.minsal.cl",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-DT-1776568032295",
+      "source": "DT",
+      "executedAt": "2026-04-19T03:07:12.295Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 1,
+      "newItems": 0,
+      "officialUrl": "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-192736.html",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-SUSESO-1776568032293",
+      "source": "SUSESO",
+      "executedAt": "2026-04-19T03:07:12.293Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 2,
+      "newItems": 0,
+      "officialUrl": "https://www.suseso.cl/613/w3-propertyvalue-68955.html",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-BCN-1776568032291",
+      "source": "BCN",
+      "executedAt": "2026-04-19T03:07:12.291Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 2,
+      "newItems": 0,
+      "officialUrl": "https://www.bcn.cl",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-MINSAL-1776568030570",
+      "source": "MINSAL",
+      "executedAt": "2026-04-19T03:07:10.570Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 1,
+      "newItems": 1,
+      "officialUrl": "https://www.minsal.cl",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-DT-1776568030568",
+      "source": "DT",
+      "executedAt": "2026-04-19T03:07:10.568Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 1,
+      "newItems": 0,
+      "officialUrl": "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-192736.html",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-SUSESO-1776568030567",
+      "source": "SUSESO",
+      "executedAt": "2026-04-19T03:07:10.564Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 2,
+      "newItems": 1,
+      "officialUrl": "https://www.suseso.cl/613/w3-propertyvalue-68955.html",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    },
+    {
+      "id": "ingest-BCN-1776568030562",
+      "source": "BCN",
+      "executedAt": "2026-04-19T03:07:10.562Z",
+      "mode": "snapshot",
+      "status": "fallback",
+      "fetchedItems": 2,
+      "newItems": 1,
+      "officialUrl": "https://www.bcn.cl",
+      "note": "Se usó snapshot local del adaptador; falta integración remota."
+    }
+  ],
+  "watchRequests": [
+    {
+      "id": "watch-default-1",
+      "topic": "ley karin",
+      "normalizedTopic": "ley karin",
+      "origin": "manual",
+      "status": "cubierto",
+      "createdAt": "2026-04-18T10:00:00.000Z",
+      "lastMatchedUpdateId": "upd-ley-karin"
+    }
+  ]
+}

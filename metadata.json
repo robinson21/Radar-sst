@@ -1,0 +1,5 @@
+{
+  "name": "Asistente ST Chile IA",
+  "description": "Asistente inteligente para identificación de riesgos laborales (ST Chile), generación de informes y sincronización con SharePoint.",
+  "requestFramePermissions": ["camera"]
+}
