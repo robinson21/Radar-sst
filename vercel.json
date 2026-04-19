@@ -1,15 +1,12 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "installCommand": "npm install",
   "framework": "vite",
   "functions": {
     "api/index.ts": {
-      "runtime": "@vercel/node",
       "maxDuration": 120
     },
     "api/cron/scan.ts": {
-      "runtime": "@vercel/node",
       "maxDuration": 120
     }
   },
