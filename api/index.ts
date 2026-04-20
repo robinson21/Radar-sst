@@ -78,25 +78,33 @@ function recordAIUsage() {
 
 async function callGemini(prompt: string): Promise<string> {
   if (!GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY no configurada");
+    throw new Error("GEMINI_API_KEY no configurada en variables de entorno");
   }
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-    {
+  const modelName = "gemini-1.5-flash";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+  console.log(`Calling Gemini API with model: ${modelName}, prompt length: ${prompt.length}`);
+  try {
+    const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
       }),
+    });
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Gemini API error: ${response.status} - ${errorText}`);
+      throw new Error(`Gemini API error ${response.status}`);
     }
-  );
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    console.log(`Gemini response received, length: ${text.length}`);
+    return text;
+  } catch (err) {
+    console.error("Error calling Gemini:", err);
+    throw err;
   }
-  const data = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 }
 
 // Data
