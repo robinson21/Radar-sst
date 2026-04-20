@@ -8,8 +8,10 @@ import {
   ChevronRight,
   Clock3,
   Database,
+  Download,
   FilePlus2,
   FileStack,
+  FileText,
   LoaderCircle,
   Radar,
   RefreshCcw,
@@ -18,6 +20,8 @@ import {
   Search,
   ShieldAlert,
   Sparkles,
+  SparklesIcon,
+  Wand2,
 } from "lucide-react";
 import type {
   CompanyProfile,
@@ -33,6 +37,20 @@ import type {
   WatchRequest,
   WatchRequestStatus,
 } from "./types";
+
+interface AIStatus {
+  canUse: boolean;
+  remaining: number;
+  resetsAt: string;
+}
+
+interface AIResponse {
+  action: string;
+  itemId: string;
+  result: string;
+  usage: AIStatus;
+  analyzedAt: string;
+}
 
 const sourceTone: Record<SourceCode, string> = {
   BCN: "tone-blue",
@@ -101,6 +119,9 @@ function App() {
   const [mutatingObligationId, setMutatingObligationId] = useState<string | null>(null);
   const [mutatingWatchId, setMutatingWatchId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [aiStatus, setAiStatus] = useState<AIStatus | null>(null);
+  const [aiResult, setAiResult] = useState<AIResponse | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   async function readJson<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
     const response = await fetch(input, init);
@@ -116,10 +137,22 @@ function App() {
     return (await response.json()) as T;
   }
 
+  async function loadAIStatus() {
+    try {
+      const status = await readJson<AIStatus>("/api/ai-status");
+      setAiStatus(status);
+    } catch {
+      setAiStatus(null);
+    }
+  }
+
   function syncPayload(payload: DashboardResponse) {
     startTransition(() => {
       setData(payload);
       setForm(toProfileForm(payload.companyProfile));
+      if (payload.aiStatus) {
+        setAiStatus(payload.aiStatus);
+      }
     });
   }
 
@@ -129,6 +162,7 @@ function App() {
     try {
       const payload = await readJson<DashboardResponse>("/api/dashboard");
       syncPayload(payload);
+      await loadAIStatus();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error inesperado");
     } finally {
@@ -153,9 +187,7 @@ function App() {
   }
 
   async function saveProfile() {
-    if (!form) {
-      return;
-    }
+    if (!form) return;
     setSavingProfile(true);
     setError(null);
     try {
@@ -181,9 +213,7 @@ function App() {
   }
 
   async function addWatchTopic() {
-    if (!manualTopic.trim()) {
-      return;
-    }
+    if (!manualTopic.trim()) return;
     setSavingTopic(true);
     setError(null);
     try {
@@ -251,6 +281,57 @@ function App() {
     }
   }
 
+  async function callAI(action: string, itemId?: string) {
+    setAiLoading(true);
+    setError(null);
+    setAiResult(null);
+    try {
+      const result = await readJson<AIResponse>("/api/ai-analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, itemId }),
+      });
+      setAiResult(result);
+      await loadAIStatus();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al usar IA");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  async function exportData() {
+    try {
+      const response = await fetch("/api/export");
+      if (!response.ok) throw new Error("Error al exportar");
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `radar-sst-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al exportar");
+    }
+  }
+
+  async function downloadDocx(docId: string, docName: string) {
+    try {
+      const response = await fetch(`/api/documents/${docId}/generate`, { method: "POST" });
+      if (!response.ok) throw new Error("Error al generar documento");
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${docName.replace(/\s+/g, "-")}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al descargar DOCX");
+    }
+  }
+
   useEffect(() => {
     void loadDashboard();
   }, []);
@@ -275,20 +356,24 @@ function App() {
           <div><p className="eyebrow">MVP Compliance</p><h1>Radar SST</h1></div>
         </div>
         <nav className="sidebar-nav">
-          <a href="#overview">Resumen ejecutivo</a>
-          <a href="#sources">Fuentes monitoreadas</a>
-          <a href="#profile">Perfil y rubro</a>
-          <a href="#watchlist">Solicitudes SST</a>
-          <a href="#updates">Normativa detectada</a>
-          <a href="#obligations">Aplicabilidad y cumplimiento</a>
-          <a href="#documents">Documentos y bases</a>
-          <a href="#activity">Actividad del agente</a>
+          <a href="#overview">Resumen</a>
+          <a href="#ai-assistant">Asistente IA</a>
+          <a href="#sources">Fuentes</a>
+          <a href="#profile">Perfil</a>
+          <a href="#obligations">Obligaciones</a>
+          <a href="#documents">Documentos</a>
         </nav>
         <div className="sidebar-card">
-          <p className="eyebrow">Ejecución automática</p>
-          <strong>Cada {data.scheduler.intervalMinutes} min</strong>
-          <span>Próximo ciclo {fmtDate(data.scheduler.nextRunAt)}</span>
-          <span>Estado persistido en `data/state.json`</span>
+          <p className="eyebrow">IA Disponible</p>
+          <strong style={{ color: aiStatus?.canUse ? "#22c55e" : "#ef4444" }}>
+            {aiStatus?.canUse ? `${aiStatus.remaining} uso restante` : "Sin usos hoy"}
+          </strong>
+          <small>Se renueva a las 00:00 UTC</small>
+        </div>
+        <div className="sidebar-card">
+          <button className="secondary-btn" style={{ width: "100%", marginBottom: 8 }} onClick={() => void exportData()}>
+            <Download size={14} /> Exportar datos
+          </button>
         </div>
       </aside>
 
@@ -296,169 +381,130 @@ function App() {
         <section className="hero" id="overview">
           <div>
             <p className="eyebrow">Monitoreo diario normativo</p>
-            <h2>Plataforma inicial para detectar, clasificar y accionar cumplimiento SST</h2>
-            <p className="hero-copy">El agente consolida cambios normativos, evalúa si aplican a tu operación y propone cómo cumplir con trazabilidad de evidencia, responsables y documentos base.</p>
+            <h2>Plataforma SST para detectar, clasificar y accionarr cumplimiento</h2>
+            <p className="hero-copy">El agente consolida cambios normativos, evalúa aplicabilidad y propone cómo cumplir.</p>
             {error ? <div className="inline-error">{error}</div> : null}
           </div>
           <div className="hero-actions">
-            <button className="primary-btn" onClick={() => void runScan()} disabled={scanning}>{scanning ? <LoaderCircle className="spin" size={16} /> : <RefreshCcw size={16} />}Ejecutar escaneo</button>
-            <button className="secondary-btn" onClick={() => void resetDemo()}><RotateCcw size={16} />Reset demo</button>
-            <div className="hero-meta"><Clock3 size={16} /><span>Última actualización: {fmtDate(data.generatedAt)}</span></div>
+            <button className="primary-btn" onClick={() => void runScan()} disabled={scanning}>
+              {scanning ? <LoaderCircle className="spin" size={16} /> : <RefreshCcw size={16} />}
+              Ejecutar escaneo
+            </button>
+            <button className="secondary-btn" onClick={() => void resetDemo()}>
+              <RotateCcw size={16} /> Reset
+            </button>
+            <div className="hero-meta"><Clock3 size={16} /><span>Actualizado: {fmtDate(data.generatedAt)}</span></div>
+          </div>
+        </section>
+
+        <section className="panel" id="ai-assistant">
+          <div className="panel-head">
+            <div>
+              <p className="eyebrow">Asistente IA</p>
+              <h3>Análisis con Gemini (1 uso diario)</h3>
+            </div>
+            <Wand2 size={18} />
+          </div>
+          <div className="ai-section">
+            <div className="ai-actions">
+              <button className="ai-btn" onClick={() => void callAI("analyze")} disabled={aiLoading || !aiStatus?.canUse}>
+                <SparklesIcon size={14} /> Analizar norma
+              </button>
+              <button className="ai-btn" onClick={() => void callAI("summarize")} disabled={aiLoading || !aiStatus?.canUse}>
+                <BookOpenText size={14} /> Resumir
+              </button>
+              <button className="ai-btn" onClick={() => void callAI("recommend")} disabled={aiLoading || !aiStatus?.canUse}>
+                <CheckCircle2 size={14} /> Cómo cumplir
+              </button>
+              <button className="ai-btn" onClick={() => void callAI("generate")} disabled={aiLoading || !aiStatus?.canUse}>
+                <FileText size={14} /> Generar plan
+              </button>
+            </div>
+            {aiLoading && <div className="ai-loading"><LoaderCircle className="spin" size={20} /> Procesando con IA...</div>}
+            {aiResult && (
+              <div className="ai-result">
+                <div className="ai-result-header">
+                  <span className="pill pill-success">IA usada: 1/{aiResult.usage.remaining + 1}</span>
+                  <small>{fmtDate(aiResult.analyzedAt)}</small>
+                </div>
+                <div className="ai-result-content">
+                  <pre style={{ whiteSpace: "pre-wrap", fontSize: 13 }}>{aiResult.result}</pre>
+                </div>
+              </div>
+            )}
+            {!aiStatus?.canUse && !aiLoading && (
+              <p className="helper-copy">Límite diario alcanzado. Se renueva a las 00:00 UTC.</p>
+            )}
           </div>
         </section>
 
         <section className="metrics-grid">
           <MetricCard icon={<Database size={18} />} label="Fuentes activas" value={String(data.stats.monitoredSources)} />
           <MetricCard icon={<BellRing size={18} />} label="Normas monitoreadas" value={String(data.stats.totalUpdates)} />
-          <MetricCard icon={<Search size={18} />} label="Temas vigilados" value={String(data.watchRequests.length)} />
           <MetricCard icon={<ShieldAlert size={18} />} label="Obligaciones aplicables" value={String(data.stats.applicableObligations)} />
           <MetricCard icon={<Sparkles size={18} />} label="Acciones urgentes" value={String(data.stats.urgentActions)} />
           <MetricCard icon={<FileStack size={18} />} label="Documentos pendientes" value={String(data.stats.pendingDocuments)} />
-        </section>
-
-        <section className="dashboard-grid" id="sources">
-          <div className="panel">
-            <div className="panel-head"><div><p className="eyebrow">Adaptadores de monitoreo</p><h3>Fuentes oficiales configuradas</h3></div><Radar size={18} /></div>
-            <div className="source-grid">{data.sourceMonitors.map((monitor) => <SourceCard key={monitor.code} monitor={monitor} />)}</div>
-          </div>
-          <div className="panel accent-panel">
-            <div className="panel-head"><div><p className="eyebrow">Ingestión reciente</p><h3>Últimas corridas del pipeline</h3></div><Activity size={18} /></div>
-            <div className="stack">{data.ingestionRuns.length === 0 ? <EmptyState text="Aún no hay corridas de ingestión registradas." /> : data.ingestionRuns.slice(0, 5).map((run) => <IngestionCard key={run.id} run={run} />)}</div>
-          </div>
+          <MetricCard icon={<Activity size={18} />} label="Cobertura" value={`${data.stats.coverageRate}%`} />
         </section>
 
         <section className="dashboard-grid" id="profile">
           <div className="panel">
-            <div className="panel-head"><div><p className="eyebrow">Motor de aplicabilidad</p><h3>Perfil empresarial editable</h3></div><Database size={18} /></div>
+            <div className="panel-head"><div><p className="eyebrow">Perfil empresarial</p><h3>Datos de la empresa</h3></div><Database size={18} /></div>
             <div className="form-grid">
               <label className="field"><span>Razón social</span><input value={form.legalName} onChange={(e) => setForm({ ...form, legalName: e.target.value })} /></label>
-              <label className="field"><span>Rubro libre</span><input value={form.industry} onChange={(e) => setForm({ ...form, industry: e.target.value })} /></label>
-              <label className="field"><span>Rubro sugerido</span><select value="" onChange={(e) => { if (e.target.value) setForm({ ...form, industry: e.target.value }); }}><option value="">Seleccionar rubro</option>{data.industryOptions.map((option) => <option key={option.value} value={option.label}>{option.label}</option>)}</select></label>
+              <label className="field"><span>Rubro</span><input value={form.industry} onChange={(e) => setForm({ ...form, industry: e.target.value })} /></label>
               <label className="field"><span>Dotación</span><input value={form.headcount} type="number" onChange={(e) => setForm({ ...form, headcount: e.target.value })} /></label>
               <label className="field"><span>Nivel de riesgo</span><input value={form.riskLevel} onChange={(e) => setForm({ ...form, riskLevel: e.target.value })} /></label>
-              <label className="field"><span>Organismo administrador</span><input value={form.administrator} onChange={(e) => setForm({ ...form, administrator: e.target.value })} /></label>
               <label className="field checkbox-field"><span>Subcontratistas</span><input checked={form.hasContractors} type="checkbox" onChange={(e) => setForm({ ...form, hasContractors: e.target.checked })} /></label>
-              <label className="field full-width"><span>Centros de trabajo</span><textarea rows={5} value={form.sites} onChange={(e) => setForm({ ...form, sites: e.target.value })} /></label>
+              <label className="field full-width"><span>Centros de trabajo</span><textarea rows={3} value={form.sites} onChange={(e) => setForm({ ...form, sites: e.target.value })} /></label>
             </div>
-            <div className="panel-actions"><button className="primary-btn" onClick={() => void saveProfile()} disabled={savingProfile}>{savingProfile ? <LoaderCircle className="spin" size={16} /> : <Save size={16} />}Guardar perfil</button></div>
+            <div className="panel-actions"><button className="primary-btn" onClick={() => void saveProfile()} disabled={savingProfile}>{savingProfile ? <LoaderCircle className="spin" size={16} /> : <Save size={16} />}Guardar</button></div>
           </div>
           <div className="panel accent-panel">
-            <div className="panel-head"><div><p className="eyebrow">Lectura actual</p><h3>Cómo interpreta hoy el agente tu operación</h3></div><Sparkles size={18} /></div>
+            <div className="panel-head"><div><p className="eyebrow">Resumen</p><h3>Interpretación actual</h3></div><Sparkles size={18} /></div>
             <ul className="roadmap-list">
-              <li>{data.companyProfile.headcount > 25 ? "Sí requiere" : "No requiere"} control de Comité Paritario por dotación informada.</li>
-              <li>{data.companyProfile.hasContractors ? "Sí existe" : "No existe"} exposición por subcontratación declarada.</li>
-              <li>{data.companyProfile.sites.length} centro(s) de trabajo considerados para DS 594 y matrices operativas.</li>
-              <li>El rubro activo es `{data.companyProfile.industry}` y alimenta solicitudes persistentes por tema.</li>
-              <li>Organismo administrador cargado: {data.companyProfile.administrator}.</li>
+              <li>{data.companyProfile.headcount > 25 ? "Sí" : "No"} requiere Comité Paritario</li>
+              <li>{data.companyProfile.hasContractors ? "Sí" : "No"} tiene subcontratación</li>
+              <li>{data.companyProfile.sites.length} centros de trabajo</li>
             </ul>
-          </div>
-        </section>
-
-        <section className="dashboard-grid" id="watchlist">
-          <div className="panel">
-            <div className="panel-head"><div><p className="eyebrow">Solicitudes persistentes</p><h3>Temas SST que el agente debe perseguir</h3></div><Search size={18} /></div>
-            <div className="watch-entry">
-              <input value={manualTopic} placeholder="Ejemplo: sílice, protocolo de calor, violencia de terceros" onChange={(e) => setManualTopic(e.target.value)} />
-              <button className="primary-btn" onClick={() => void addWatchTopic()} disabled={savingTopic}>{savingTopic ? <LoaderCircle className="spin" size={16} /> : <FilePlus2 size={16} />}Agregar tema</button>
-            </div>
-            <div className="stack">{data.watchRequests.map((request) => <WatchCard key={request.id} request={request} disabled={mutatingWatchId === request.id} onChangeStatus={updateWatchStatus} />)}</div>
-          </div>
-          <div className="panel accent-panel">
-            <div className="panel-head"><div><p className="eyebrow">Rubro a búsqueda</p><h3>Temas sugeridos por sector</h3></div><Sparkles size={18} /></div>
-            <div className="chips">{data.industryOptions.find((item) => item.label === data.companyProfile.industry)?.suggestedTopics.map((topic) => <span key={topic} className="chip">{topic}</span>) ?? <span className="chip">Sin temas sugeridos para este rubro aún.</span>}</div>
-            <p className="helper-copy">Cuando guardas un rubro reconocido, el backend crea solicitudes persistentes por temas relacionados a SST y las cruza contra la base monitoreada.</p>
-          </div>
-        </section>
-
-        <section className="dashboard-grid">
-          <div className="panel spotlight">
-            <div className="panel-head"><div><p className="eyebrow">Qué cambió hoy</p><h3>Alertas normativas priorizadas</h3></div><BookOpenText size={18} /></div>
-            <div className="stack">{data.updates.slice(0, 3).map((update) => <UpdateCard key={update.id} update={update} />)}</div>
-          </div>
-          <div className="panel">
-            <div className="panel-head"><div><p className="eyebrow">Brechas críticas</p><h3>Acciones inmediatas</h3></div><Activity size={18} /></div>
-            <div className="stack">{urgentObligations.length === 0 ? <EmptyState text="No hay brechas críticas pendientes." /> : urgentObligations.map((item) => <article className="action-card" key={item.id}><div className="action-header"><strong>{item.title}</strong><span className={`pill ${statusTone[item.status]}`}>{item.status.replace("_", " ")}</span></div><p>{item.basis}</p><div className="meta-row"><span>{item.owner}</span><span>Vence {fmtDate(item.dueDate)}</span></div></article>)}</div>
           </div>
         </section>
 
         <section className="panel" id="updates">
-          <div className="panel-head"><div><p className="eyebrow">Base normativa</p><h3>Normas clasificadas por fuente y aplicabilidad</h3></div><ArrowUpRight size={18} /></div>
-          <div className="cards-grid">{data.updates.map((update) => <article className="reg-card" key={update.id}><div className="reg-header"><span className={`source-tag ${sourceTone[update.source]}`}>{update.source}</span><span className={`pill ${impactTone[update.impactLevel]}`}>{update.category}</span></div><h4>{update.title}</h4><p>{update.applicabilityReason}</p><ul className="micro-list">{update.keyPoints.map((point) => <li key={point}>{point}</li>)}</ul><a href={update.officialUrl} target="_blank" rel="noreferrer" className="text-link">Ver fuente oficial <ChevronRight size={14} /></a></article>)}</div>
+          <div className="panel-head"><div><p className="eyebrow">Base normativa</p><h3>Normas detectadas</h3></div><BookOpenText size={18} /></div>
+          <div className="cards-grid">{data.updates.map((update) => <article className="reg-card" key={update.id}><div className="reg-header"><span className={`source-tag ${sourceTone[update.source]}`}>{update.source}</span><span className={`pill ${impactTone[update.impactLevel]}`}>{update.impactLevel}</span></div><h4>{update.title}</h4><p>{update.applicabilityReason}</p><ul className="micro-list">{update.keyPoints.map((point) => <li key={point}>{point}</li>)}</ul><a href={update.officialUrl} target="_blank" rel="noreferrer" className="text-link">Ver fuente <ChevronRight size={14} /></a></article>)}</div>
         </section>
 
-        <section className="dashboard-grid" id="obligations">
-          <div className="panel">
-            <div className="panel-head"><div><p className="eyebrow">Motor de aplicabilidad</p><h3>Obligaciones que sí te aplican</h3></div><ShieldAlert size={18} /></div>
-            <div className="table-like">{data.obligations.map((item) => <div className="table-row" key={item.id}><div><strong>{item.title}</strong><p>{item.area}</p></div><div><span className={`pill ${impactTone[item.priority]}`}>{item.priority}</span></div><div><span className={`pill ${item.applies ? statusTone[item.status] : "pill-neutral"}`}>{item.applies ? item.status.replace("_", " ") : "no aplica"}</span></div><div><p>{item.owner}</p><small>{fmtDate(item.dueDate)}</small></div><div><select className="status-select" value={item.status} disabled={!item.applies || mutatingObligationId === item.id} onChange={(e) => void updateObligationStatus(item.id, e.target.value as ObligationStatus)}><option value="pendiente">Pendiente</option><option value="en_progreso">En progreso</option><option value="cumplido">Cumplido</option></select></div></div>)}</div>
-          </div>
-          <div className="panel">
-            <div className="panel-head"><div><p className="eyebrow">Cómo cumplir</p><h3>Guía operativa del agente</h3></div><Sparkles size={18} /></div>
-            <div className="stack">{data.obligations.slice(0, 3).map((item) => <article className="playbook-card" key={item.id}><strong>{item.title}</strong><p>{item.basis}</p><div className="playbook-columns"><div><span className="mini-title">Cumplir</span><ul className="micro-list">{item.howToComply.map((step) => <li key={step}>{step}</li>)}</ul></div><div><span className="mini-title">Evidencia</span><ul className="micro-list">{item.evidence.map((entry) => <li key={entry}>{entry}</li>)}</ul></div></div></article>)}</div>
-          </div>
+        <section className="panel" id="obligations">
+          <div className="panel-head"><div><p className="eyebrow">Obligaciones</p><h3>Cumplimiento SST</h3></div><ShieldAlert size={18} /></div>
+          <div className="table-like">{data.obligations.map((item) => <div className="table-row" key={item.id}><div><strong>{item.title}</strong><p>{item.area}</p></div><div><span className={`pill ${impactTone[item.priority]}`}>{item.priority}</span></div><div><span className={`pill ${item.applies ? statusTone[item.status] : "pill-neutral"}`}>{item.applies ? item.status.replace("_", " ") : "no aplica"}</span></div><div><p>{item.owner}</p><small>{fmtDate(item.dueDate)}</small></div><div><select className="status-select" value={item.status} disabled={!item.applies || mutatingObligationId === item.id} onChange={(e) => void updateObligationStatus(item.id, e.target.value as ObligationStatus)}><option value="pendiente">Pendiente</option><option value="en_progreso">En progreso</option><option value="cumplido">Cumplido</option></select></div></div>)}</div>
         </section>
 
-        <section className="dashboard-grid" id="documents">
-          <div className="panel">
-            <div className="panel-head"><div><p className="eyebrow">Documentos generables</p><h3>Repositorio inicial de salidas</h3></div><FileStack size={18} /></div>
-            <div className="stack">{data.documents.map((document) => <DocumentCard key={document.id} document={document} />)}</div>
-          </div>
-          <div className="panel accent-panel">
-            <div className="panel-head"><div><p className="eyebrow">Próxima iteración</p><h3>Qué debería venir después del MVP</h3></div><Database size={18} /></div>
-            <ul className="roadmap-list">
-              <li>Fetch remoto con parsing por fuente y deduplicación real.</li>
-              <li>Búsqueda semántica para cubrir mejor temas SST solicitados.</li>
-              <li>Motor de reglas configurable por rubro, dotación y centros de trabajo.</li>
-              <li>Generación real de documentos en `DOCX` o `PDF` y versionado.</li>
-              <li>Gestión multiempresa y workflow de revisión legal.</li>
-            </ul>
-          </div>
-        </section>
-
-        <section className="panel" id="activity">
-          <div className="panel-head"><div><p className="eyebrow">Bitácora del agente</p><h3>Actividad reciente de búsqueda y clasificación</h3></div><Clock3 size={18} /></div>
-          <div className="timeline">{data.scanEvents.map((event) => <TimelineItem key={event.id} event={event} />)}</div>
+        <section className="panel" id="documents">
+          <div className="panel-head"><div><p className="eyebrow">Documentos</p><h3>Generación y descarga</h3></div><FileStack size={18} /></div>
+          <div className="stack">{data.documents.map((doc) => <article className="doc-card" key={doc.id}><div className="action-header"><strong>{doc.name}</strong><span className={`pill ${doc.status === "listo" ? "pill-success" : doc.status === "faltante" ? "pill-danger" : "pill-warning"}`}>{doc.status.replace("_", " ")}</span></div><p>{doc.description}</p><button className="primary-btn" onClick={() => void downloadDocx(doc.id, doc.name)} disabled={doc.status === "faltante"}><Download size={14} /> Descargar DOCX</button></article>)}</div>
         </section>
       </main>
+
+      <style>{`
+        .ai-section { padding: 16px 0; }
+        .ai-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .ai-btn { display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .ai-btn:hover:not(:disabled) { background: #2563eb; }
+        .ai-loading { display: flex; align-items: center; gap: 8px; padding: 12px; color: #666; }
+        .ai-result { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+        .ai-result-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; }
+        .ai-result-content { padding: 12px; max-height: 400px; overflow-y: auto; }
+        .sidebar-card { margin-top: 16px; }
+        .sidebar-card button { font-size: 12px; }
+      `}</style>
     </div>
   );
 }
 
 function MetricCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return <article className="metric-card"><div className="metric-icon">{icon}</div><span>{label}</span><strong>{value}</strong></article>;
-}
-
-function SourceCard({ monitor }: { monitor: SourceMonitor }) {
-  const statusClass = monitor.lastStatus === "ok" ? "pill-success" : monitor.lastStatus === "fallback" ? "pill-warning" : "pill-neutral";
-  return <article className="source-card"><div className="action-header"><strong>{monitor.label}</strong><span className={`pill ${statusClass}`}>{monitor.lastStatus}</span></div><p>{monitor.coverage}</p><div className="meta-stack"><span>Modo: {monitor.mode}</span><span>Snapshots: {monitor.snapshotCount}</span><span>{monitor.lastRunAt ? `Última corrida ${fmtDate(monitor.lastRunAt)}` : "Sin corridas aún"}</span></div><a href={monitor.officialUrl} target="_blank" rel="noreferrer" className="text-link">Abrir fuente oficial <ChevronRight size={14} /></a></article>;
-}
-
-function IngestionCard({ run }: { run: IngestionRun }) {
-  return <article className="doc-card"><div className="action-header"><strong>{run.source}</strong><span className={`pill ${run.status === "ok" ? "pill-success" : "pill-warning"}`}>{run.mode}</span></div><p>{run.note}</p><div className="meta-stack"><span>Ejecutado {fmtDate(run.executedAt)}</span><span>Items leídos: {run.fetchedItems}</span><span>Nuevos detectados: {run.newItems}</span></div></article>;
-}
-
-function UpdateCard({ update }: { update: NormUpdate }) {
-  return <article className="update-card"><div className="update-topline"><span className={`source-tag ${sourceTone[update.source]}`}>{update.source}</span><span className={`pill ${impactTone[update.impactLevel]}`}>Impacto {update.impactLevel}</span></div><h4>{update.title}</h4><p>{update.summary}</p><div className="meta-row"><span>Publicado: {fmtDate(update.publishedAt)}</span><span>Vigencia: {fmtDate(update.effectiveAt)}</span></div></article>;
-}
-
-function DocumentCard({ document }: { document: DocumentTemplate }) {
-  const tone = document.status === "listo" ? "pill-success" : document.status === "faltante" ? "pill-danger" : "pill-warning";
-  return <article className="doc-card"><div className="action-header"><strong>{document.name}</strong><span className={`pill ${tone}`}>{document.status.replace("_", " ")}</span></div><p>{document.description}</p><div className="meta-row"><span>{document.type}</span><span>{document.lastGeneratedAt ? `Generado ${fmtDate(document.lastGeneratedAt)}` : "Aún no generado"}</span></div></article>;
-}
-
-function WatchCard({
-  request,
-  disabled,
-  onChangeStatus,
-}: {
-  request: WatchRequest;
-  disabled: boolean;
-  onChangeStatus: (id: string, status: WatchRequestStatus) => Promise<void>;
-}) {
-  return <article className="doc-card"><div className="action-header"><strong>{request.topic}</strong><span className={`pill ${watchTone[request.status]}`}>{request.status.replace("_", " ")}</span></div><div className="meta-stack"><span>Origen: {request.origin}</span><span>Creado {fmtDate(request.createdAt)}</span><span>{request.lastMatchedUpdateId ? `Última coincidencia: ${request.lastMatchedUpdateId}` : "Sin coincidencias aún"}</span></div><div className="panel-actions left"><select className="status-select" value={request.status} disabled={disabled} onChange={(e) => void onChangeStatus(request.id, e.target.value as WatchRequestStatus)}><option value="activo">Activo</option><option value="cubierto">Cubierto</option><option value="en_revision">En revisión</option></select></div></article>;
-}
-
-function TimelineItem({ event }: { event: ScanEvent }) {
-  return <article className="timeline-item"><div className="timeline-dot" /><div><strong>{fmtDate(event.executedAt)}</strong><p>{event.summary}</p><small>{event.source} · {event.findings} hallazgo(s)</small></div></article>;
 }
 
 function EmptyState({ text }: { text: string }) {

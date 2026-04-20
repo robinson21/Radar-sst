@@ -136,4 +136,9 @@ export type DashboardResponse = {
   documents: DocumentTemplate[];
   scanEvents: ScanEvent[];
   ingestionRuns: IngestionRun[];
+  aiStatus?: {
+    canUse: boolean;
+    remaining: number;
+    resetsAt: string;
+  };
 };
