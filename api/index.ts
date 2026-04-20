@@ -76,35 +76,50 @@ function recordAIUsage() {
   aiUsageLog.lastUsedAt = new Date().toISOString();
 }
 
+async function listAvailableModels(): Promise<string[]> {
+  if (!GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY no configurada");
+  }
+  const url = `https://generativelanguage.googleapis.com/v1/models?key=${GEMINI_API_KEY}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Error listing models: ${response.status}`);
+  }
+  const data = await response.json();
+  return data.models?.map((m: any) => m.name) || [];
+}
+
 async function callGemini(prompt: string): Promise<string> {
   if (!GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY no configurada en variables de entorno");
   }
-  const modelName = "gemini-3.0-flash";
-  const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
-  console.log(`Calling Gemini API with model: ${modelName}, prompt length: ${prompt.length}`);
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-      }),
-    });
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Gemini API error: ${response.status} - ${errorText}`);
-      throw new Error(`Gemini API error ${response.status}`);
+  // Try to find a working model
+  const models = ["gemini-3.0-flash-latest", "gemini-3.0-flash-exp", "gemini-2.0-flash-exp", "gemini-pro"];
+  let lastError = "";
+  for (const modelName of models) {
+    const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
+    console.log(`Trying model: ${modelName}`);
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+        console.log(`Success with model: ${modelName}`);
+        return text;
+      }
+      lastError = `${response.status}`;
+    } catch (err) {
+      lastError = String(err);
     }
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    console.log(`Gemini response received, length: ${text.length}`);
-    return text;
-  } catch (err) {
-    console.error("Error calling Gemini:", err);
-    throw err;
   }
+  throw new Error(`All models failed. Last error: ${lastError}`);
 }
 
 // Data
@@ -319,6 +334,15 @@ function route(req: VercelRequest, res: VercelResponse) {
   // AI Status
   if (path === "/api/ai-status" && method === "GET") {
     return res.json(checkAILimit());
+  }
+
+  if (path === "/api/ai-models" && method === "GET") {
+    try {
+      const models = await listAvailableModels();
+      return res.json({ models });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
   }
 
   // AI Analyze
