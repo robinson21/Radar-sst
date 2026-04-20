@@ -89,11 +89,11 @@ async function callGemini(prompt: string): Promise<string> {
     initGemini();
     if (!ai) throw new Error("GEMINI_API_KEY no configurada");
   }
-  const result = await ai.models.generateContent({
-    model: "gemini-2.0-flash",
-    contents: prompt,
+  const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const result = await model.generateContent({
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
   });
-  return result.text ?? "";
+  return result.response?.text() ?? "";
 }
 
 // Data
