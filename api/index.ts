@@ -80,7 +80,7 @@ async function callGemini(prompt: string): Promise<string> {
   if (!GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY no configurada en variables de entorno");
   }
-  const modelName = "gemini-1.5-flash";
+  const modelName = "gemini-3.0-flash";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
   console.log(`Calling Gemini API with model: ${modelName}, prompt length: ${prompt.length}`);
   try {
