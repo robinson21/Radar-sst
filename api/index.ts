@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
-import { GoogleGenAI } from "@google/genai";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
 
 // Types
@@ -58,14 +57,7 @@ interface AIUsageLog {
 // AI Configuration
 const AI_DAILY_LIMIT = 20;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-let ai: GoogleGenAI | null = null;
 let aiUsageLog: AIUsageLog = { date: "", requestCount: 0, lastUsedAt: "" };
-
-function initGemini() {
-  if (!ai && GEMINI_API_KEY) {
-    ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-  }
-}
 
 function checkAILimit(): { canUse: boolean; remaining: number; resetsAt: string } {
   const today = new Date().toISOString().slice(0, 10);
@@ -85,15 +77,26 @@ function recordAIUsage() {
 }
 
 async function callGemini(prompt: string): Promise<string> {
-  if (!ai) {
-    initGemini();
-    if (!ai) throw new Error("GEMINI_API_KEY no configurada");
+  if (!GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY no configurada");
   }
-  const model = ai.getGenerativeModel({ model: "gemini-2.0-flash" });
-  const result = await model.generateContent({
-    contents: [{ role: "user", parts: [{ text: prompt }] }],
-  });
-  return result.response?.text() ?? "";
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+      }),
+    }
+  );
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+  }
+  const data = await response.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 }
 
 // Data
