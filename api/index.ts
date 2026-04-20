@@ -56,7 +56,7 @@ interface AIUsageLog {
 }
 
 // AI Configuration
-const AI_DAILY_LIMIT = 1;
+const AI_DAILY_LIMIT = 20;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 let ai: GoogleGenAI | null = null;
 let aiUsageLog: AIUsageLog = { date: "", requestCount: 0, lastUsedAt: "" };
@@ -197,72 +197,69 @@ function buildDashboard() {
 }
 
 // AI Prompts
-function buildPrompt(action: string, item: any): string {
+function buildPrompt(action: string, items: any[]): string {
   const companyInfo = `Empresa: ${appState.companyProfile.legalName}, Rubro: ${appState.companyProfile.industry}, Dotación: ${appState.companyProfile.headcount} trabajadores, Nivel de riesgo: ${appState.companyProfile.riskLevel}`;
 
   switch (action) {
     case "analyze":
-      return `Eres un asesor SST experto en normativa chilena. Analiza esta normativa y responde en JSON:
+      const updatesText = items.map((u, i) => `${i+1}. ${u.title} (${u.category}): ${u.summary}`).join("\n");
+      return `Eres un asesor SST experto en normativa chilena. Analiza TODAS las siguientes normativas y responde en JSON:
 
 {
-  "aplicabilidad": "explica brevemente si aplica a esta empresa",
-  "nivelImpacto": "alto/medio/bajo",
-  "plazoRecomendado": "días/meses",
-  "sectoresAfectados": ["lista de sectores"]
+  "analisis": [
+    {"id": "id-de-la-norma", "aplicabilidad": "explica brevemente si aplica", "nivelImpacto": "alto/medio/bajo", "plazoRecomendado": "días/meses"},
+    ...
+  ],
+  "resumenEjecutivo": "resumen de los hallazgos principales"
 }
+
+Normativas a analizar:
+${updatesText}
 
 Empresa: ${companyInfo}
 
-Normativa: ${item.title}
-Categoría: ${item.category}
-Resumen: ${item.summary}
-Fuente: ${item.officialUrl}
-
-Responde SOLO con JSON válido, sin texto adicional.`;
+Responde SOLO con JSON válido.`;
 
     case "summarize":
-      return `Eres un asesor SST chileno. Resume esta normativa en términos simples para un trabajador no técnico. Incluye:
+      const summaryText = items.map((u, i) => `${i+1}. ${u.title}\nCategoría: ${u.category}\nResumen: ${u.summary}\nPuntos clave: ${u.keyPoints?.join(", ") || "N/A"}\n---`).join("\n");
+      return `Eres un asesor SST chileno. Resume TODAS las siguientes normativas en términos simples para trabajadores no técnicos:
+
+${summaryText}
+
+Para cada una incluye:
 - ¿De qué se trata?
 - ¿Qué debe hacer la empresa?
 - ¿Qué pasa si no se cumple?
 
-Normativa: ${item.title}
-Categoría: ${item.category}
-Resumen técnico: ${item.summary}
-Puntos clave: ${item.keyPoints.join(", ")}
-
-Sé conciso, usa lenguaje simple.`;
+Sé conciso y usa lenguaje simple.`;
 
     case "recommend":
-      return `Eres un asesor SST chileno. Para esta obligación, sugiere exactamente:
+      const obligationsText = items.map((o, i) => `${i+1}. ${o.title}\nÁrea: ${o.area}\nBase legal: ${o.basis}\nEstado: ${o.status}\nResponsable: ${o.owner}\nVencimiento: ${o.dueDate}`).join("\n\n");
+      return `Eres un asesor SST chileno. Para TODAS las siguientes obligaciones, sugiere:
+
+${obligationsText}
+
+Para cada una proporciona:
 - 3-5 pasos específicos para cumplir
 - 2-3 evidencias necesarias
 - Responsable típico
 - Plazo estimado
 
-Obligación: ${item.title}
-Área: ${item.area}
-Base legal: ${item.basis}
-Estado actual: ${item.status}
-
-Responde en español de forma estructurada.`;
+Responde en español de forma estructurada, numerando cada obligación y sus recomendaciones.`;
 
     case "generate":
-      return `Eres un asesor SST chileno. Genera un plan de acción completo en formato markdown para cumplir con esta obligación.
+      const generateText = items.map((o, i) => `${i+1}. ${o.title}\nÁrea: ${o.area}\nBase legal: ${o.basis}\nResponsable: ${o.owner}\nVencimiento: ${o.dueDate}`).join("\n\n");
+      return `Eres un asesor SST chileno. Genera un PLAN DE ACCIÓN completo en formato markdown para cumplir con TODAS las siguientes obligaciones:
 
-Obligación: ${item.title}
-Área: ${item.area}
-Base legal: ${item.basis}
-Responsable: ${item.owner}
-Vencimiento: ${item.dueDate}
+${generateText}
 Empresa: ${companyInfo}
 
-Incluye:
-## Objetivo
-## Actividades (numeradas, con responsables y plazos)
-## Evidencias requeridas
-## Checkpoints de verificación
-## Observaciones
+Para cada obligación incluye:
+## [Número] - [Título]
+### Objetivo
+### Actividades (con responsables y plazos)
+### Evidencias requeridas
+### Checkpoints de verificación
 
 Genera contenido práctico y accionable.`;
 
@@ -323,29 +320,36 @@ function route(req: VercelRequest, res: VercelResponse) {
     return initializeService().then(async () => {
       try {
         const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-        const { action, itemId } = body;
+        const { action } = body;
 
         if (!action || !["analyze", "summarize", "recommend", "generate"].includes(action)) {
           return res.status(400).json({ error: "Acción inválida. Use: analyze, summarize, recommend, generate" });
         }
 
-        // Find item by ID (update or obligation)
-        let item = appState.updates.find(u => u.id === itemId);
-        if (!item && itemId) {
-          item = appState.obligations.find(o => o.id === itemId);
+        // Select items based on action
+        let items: any[];
+        let itemType: string;
+        if (action === "analyze" || action === "summarize") {
+          items = appState.updates;
+          itemType = "normativas";
+        } else {
+          items = appState.obligations;
+          itemType = "obligaciones";
         }
 
-        // If no itemId, use company profile for general analysis
-        const target = item || { title: "Análisis general SST", summary: `Empresa: ${appState.companyProfile.legalName}` };
+        if (items.length === 0) {
+          return res.status(400).json({ error: `No hay ${itemType} para analizar` });
+        }
 
-        const prompt = buildPrompt(action, target);
+        const prompt = buildPrompt(action, items);
         const result = await callGemini(prompt);
 
         recordAIUsage();
 
         return res.json({
           action,
-          itemId: itemId || "general",
+          itemType,
+          itemCount: items.length,
           result,
           usage: checkAILimit(),
           analyzedAt: new Date().toISOString(),

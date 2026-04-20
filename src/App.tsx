@@ -46,7 +46,8 @@ interface AIStatus {
 
 interface AIResponse {
   action: string;
-  itemId: string;
+  itemType: string;
+  itemCount: number;
   result: string;
   usage: AIStatus;
   analyzedAt: string;
@@ -281,7 +282,7 @@ function App() {
     }
   }
 
-  async function callAI(action: string, itemId?: string) {
+  async function callAI(action: string) {
     setAiLoading(true);
     setError(null);
     setAiResult(null);
@@ -289,7 +290,7 @@ function App() {
       const result = await readJson<AIResponse>("/api/ai-analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, itemId }),
+        body: JSON.stringify({ action }),
       });
       setAiResult(result);
       await loadAIStatus();
@@ -366,7 +367,7 @@ function App() {
         <div className="sidebar-card">
           <p className="eyebrow">IA Disponible</p>
           <strong style={{ color: aiStatus?.canUse ? "#22c55e" : "#ef4444" }}>
-            {aiStatus?.canUse ? `${aiStatus.remaining} uso restante` : "Sin usos hoy"}
+            {aiStatus?.canUse ? `${aiStatus.remaining} usos restantes` : "Sin usos hoy"}
           </strong>
           <small>Se renueva a las 00:00 UTC</small>
         </div>
@@ -400,21 +401,21 @@ function App() {
         <section className="panel" id="ai-assistant">
           <div className="panel-head">
             <div>
-              <p className="eyebrow">Asistente IA</p>
-              <h3>Análisis con Gemini (1 uso diario)</h3>
+              <p className="eyebrow">Asistente IA (Gemini)</p>
+              <h3>Procesa todas las normas y obligaciones detectadas (20 usos/día)</h3>
             </div>
             <Wand2 size={18} />
           </div>
           <div className="ai-section">
             <div className="ai-actions">
               <button className="ai-btn" onClick={() => void callAI("analyze")} disabled={aiLoading || !aiStatus?.canUse}>
-                <SparklesIcon size={14} /> Analizar norma
+                <SparklesIcon size={14} /> Analizar todo ({data.updates.length})
               </button>
               <button className="ai-btn" onClick={() => void callAI("summarize")} disabled={aiLoading || !aiStatus?.canUse}>
-                <BookOpenText size={14} /> Resumir
+                <BookOpenText size={14} /> Resumir todo
               </button>
               <button className="ai-btn" onClick={() => void callAI("recommend")} disabled={aiLoading || !aiStatus?.canUse}>
-                <CheckCircle2 size={14} /> Cómo cumplir
+                <CheckCircle2 size={14} /> Cómo cumplir ({data.obligations.length})
               </button>
               <button className="ai-btn" onClick={() => void callAI("generate")} disabled={aiLoading || !aiStatus?.canUse}>
                 <FileText size={14} /> Generar plan
@@ -424,7 +425,7 @@ function App() {
             {aiResult && (
               <div className="ai-result">
                 <div className="ai-result-header">
-                  <span className="pill pill-success">IA usada: 1/{aiResult.usage.remaining + 1}</span>
+                  <span className="pill pill-success">Analizadas {aiResult.itemCount} {aiResult.itemType}</span>
                   <small>{fmtDate(aiResult.analyzedAt)}</small>
                 </div>
                 <div className="ai-result-content">
