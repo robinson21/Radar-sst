@@ -80,43 +80,34 @@ async function listAvailableModels(): Promise<string[]> {
   if (!GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY no configurada");
   }
-  const url = "https://generativelanguage.googleapis.com/v1/models?key=" + GEMINI_API_KEY;
-  const response = await fetch(url);
+  var url = "https://generativelanguage.googleapis.com/v1/models?key=" + GEMINI_API_KEY;
+  var response = await fetch(url);
   if (!response.ok) {
     throw new Error("Error listing models: " + response.status);
   }
-  const data = await response.json();
-  const models = data.models || [];
-  return models.map(function(m: any) { return m.name; });
+  var data = await response.json();
+  return data.models.map(function(m: any) { return m.name; });
 }
 
 async function callGemini(prompt: string): Promise<string> {
   if (!GEMINI_API_KEY) {
     throw new Error("GEMINI_API_KEY no configurada en variables de entorno");
   }
-  const models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-pro"];
-  let lastError = "";
-  for (let i = 0; i < models.length; i++) {
-    const modelName = models[i];
-    const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
-    console.log("Trying model:", modelName);
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-      }),
-    });
-    if (response.ok) {
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-      console.log("Success with model:", modelName);
-      return text;
-    }
-    lastError = String(response.status);
+  var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY;
+  var response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+    })
+  });
+  if (!response.ok) {
+    var errorText = await response.text();
+    throw new Error("Gemini API error " + response.status + ": " + errorText);
   }
-  throw new Error("All models failed. Last error: " + lastError);
+  var data = await response.json();
+  return data.candidates[0].content.parts[0].text || "";
 }
 
 // Data
