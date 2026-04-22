@@ -27,7 +27,7 @@ function recordAIUsage() {
 
 async function callGemini(prompt: string): Promise<string> {
   if (!GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY no configurada");
+    throw new Error("GEMINI_API_KEY no está configurada. Configure la variable de entorno en Vercel.");
   }
   var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY;
   var response = await fetch(url, {
