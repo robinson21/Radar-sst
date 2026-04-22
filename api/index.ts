@@ -2,73 +2,22 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { neon } from "@neondatabase/serverless";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
 
-// Types
-interface CompanyProfile {
-  legalName: string;
-  industry: string;
-  headcount: number;
-  riskLevel: string;
-  hasContractors: boolean;
-  sites: string[];
-  administrator: string;
-}
+var AI_DAILY_LIMIT = 20;
+var GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+var aiUsageLog = { date: "", requestCount: 0, lastUsedAt: "" };
+var appState: any = null;
+var sql: any = null;
 
-interface NormUpdate {
-  id: string;
-  title: string;
-  source: string;
-  category: string;
-  publishedAt: string;
-  effectiveAt: string;
-  impactLevel: string;
-  status: string;
-  summary: string;
-  applicabilityReason: string;
-  officialUrl: string;
-  keyPoints: string[];
-}
-
-interface WatchRequest {
-  id: string;
-  topic: string;
-  normalizedTopic: string;
-  origin: string;
-  status: string;
-  createdAt: string;
-  lastMatchedUpdateId: string | null;
-}
-
-interface AppState {
-  companyProfile: CompanyProfile;
-  updates: NormUpdate[];
-  obligations: any[];
-  documents: any[];
-  scanEvents: any[];
-  ingestionRuns: any[];
-  watchRequests: WatchRequest[];
-}
-
-interface AIUsageLog {
-  date: string;
-  requestCount: number;
-  lastUsedAt: string;
-}
-
-// AI Configuration
-const AI_DAILY_LIMIT = 20;
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-let aiUsageLog: AIUsageLog = { date: "", requestCount: 0, lastUsedAt: "" };
-
-function checkAILimit(): { canUse: boolean; remaining: number; resetsAt: string } {
-  const today = new Date().toISOString().slice(0, 10);
+function checkAILimit() {
+  var today = new Date().toISOString().slice(0, 10);
   if (aiUsageLog.date !== today) {
     aiUsageLog = { date: today, requestCount: 0, lastUsedAt: "" };
   }
-  const remaining = Math.max(0, AI_DAILY_LIMIT - aiUsageLog.requestCount);
-  const tomorrow = new Date();
+  var remaining = Math.max(0, AI_DAILY_LIMIT - aiUsageLog.requestCount);
+  var tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   tomorrow.setUTCHours(0, 0, 0, 0);
-  return { canUse: remaining > 0, remaining, resetsAt: tomorrow.toISOString() };
+  return { canUse: remaining > 0, remaining: remaining, resetsAt: tomorrow.toISOString() };
 }
 
 function recordAIUsage() {
@@ -76,22 +25,9 @@ function recordAIUsage() {
   aiUsageLog.lastUsedAt = new Date().toISOString();
 }
 
-async function listAvailableModels(): Promise<string[]> {
-  if (!GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY no configurada");
-  }
-  var url = "https://generativelanguage.googleapis.com/v1/models?key=" + GEMINI_API_KEY;
-  var response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("Error listing models: " + response.status);
-  }
-  var data = await response.json();
-  return data.models.map(function(m: any) { return m.name; });
-}
-
 async function callGemini(prompt: string): Promise<string> {
   if (!GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY no configurada en variables de entorno");
+    throw new Error("GEMINI_API_KEY no configurada");
   }
   var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY;
   var response = await fetch(url, {
@@ -110,8 +46,7 @@ async function callGemini(prompt: string): Promise<string> {
   return data.candidates[0].content.parts[0].text || "";
 }
 
-// Data
-const industryOptions = [
+var industryOptions = [
   { value: "mineria", label: "Minería", suggestedTopics: ["polvo sílice", "ruido ocupacional", "trabajo en altura", "fatiga y turnos"] },
   { value: "construccion", label: "Construcción", suggestedTopics: ["trabajo en altura", "excavaciones", "andamios", "subcontratación"] },
   { value: "logistica", label: "Logística y bodegas", suggestedTopics: ["manejo manual de cargas", "grúas horquilla", "tránsito interno", "ergonomía"] },
@@ -120,7 +55,7 @@ const industryOptions = [
   { value: "retail", label: "Retail", suggestedTopics: ["ergonomía", "violencia de terceros", "manejo manual de cargas", "emergencias"] },
 ];
 
-const sourceAdapters = [
+var sourceAdapters = [
   { code: "BCN", label: "Biblioteca del Congreso Nacional", officialUrl: "https://www.bcn.cl", remoteUrl: "https://www.bcn.cl/leychile/navegar?idNorma=167766", coverage: "Leyes, decretos y reglamentos base", mode: "snapshot", category: "Condiciones sanitarias", keywords: ["seguridad", "salud", "trabajo", "higiene", "subcontrat"], items: [{ id: "upd-ds-594", title: "DS 594: condiciones sanitarias y ambientales básicas en lugares de trabajo", source: "BCN", category: "Condiciones sanitarias", publishedAt: "1999-09-15", effectiveAt: "2000-01-01", impactLevel: "alto", status: "monitoreado", summary: "Regula ventilación, servicios higiénicos, agua potable, iluminación, agentes físicos y condiciones mínimas de higiene industrial.", applicabilityReason: "Aplica a todos los centros de trabajo informados por la empresa y es base de fiscalización sanitaria.", officialUrl: "https://www.bcn.cl/leychile/navegar?idNorma=167766", keyPoints: ["Todo centro debe contar con servicios higiénicos adecuados.", "Las condiciones ambientales deben evaluarse y controlarse.", "La evidencia operativa es fiscalizable en terreno."] }, { id: "upd-reglamento-subcontratacion", title: "Refuerzo del deber de coordinación preventiva en trabajo en régimen de subcontratación", source: "BCN", category: "Subcontratación", publishedAt: "2026-04-18", effectiveAt: "2026-04-18", impactLevel: "medio", status: "nuevo", summary: "El snapshot de BCN prioriza obligaciones de coordinación entre empresa principal, contratistas y subcontratistas para control de riesgos.", applicabilityReason: "Aplica cuando la empresa declara subcontratación y mantiene más de un centro de trabajo con terceros.", officialUrl: "https://www.bcn.cl", keyPoints: ["Debe existir coordinación de riesgos y responsabilidades.", "Se requiere trazabilidad de inducciones y controles compartidos.", "La documentación preventiva debe ser exigible a contratistas."] }] },
   { code: "SUSESO", label: "Superintendencia de Seguridad Social", officialUrl: "https://www.suseso.cl/613/w3-propertyvalue-68955.html", remoteUrl: "https://www.suseso.cl/613/w3-propertyvalue-68955.html", coverage: "Compendio, dictámenes y obligaciones preventivas", mode: "snapshot", category: "Gestión preventiva", keywords: ["seguridad", "salud", "trabajo", "comité", "prevención"], items: [{ id: "upd-ley-16744", title: "Ley 16.744 y obligaciones preventivas del empleador", source: "SUSESO", category: "Gestión preventiva", publishedAt: "1968-02-01", effectiveAt: "1968-05-01", impactLevel: "alto", status: "en_revision", summary: "Consolida deberes de prevención, implementación de medidas, entrega de elementos de protección y coordinación con el organismo administrador.", applicabilityReason: "Aplica por ser entidad empleadora adherida a organismo administrador y por exposición a riesgos operacionales.", officialUrl: "https://www.suseso.cl/613/w3-propertyvalue-68955.html", keyPoints: ["Debe implementarse la gestión preventiva prescrita por normativa y organismo administrador.", "El empleador debe proveer elementos de protección personal sin costo.", "Se requiere seguimiento formal de medidas correctivas."] }, { id: "upd-comite-paritario", title: "Refuerzo de obligaciones sobre Comité Paritario y trazabilidad de acuerdos", source: "SUSESO", category: "Gobernanza SST", publishedAt: "2026-04-18", effectiveAt: "2026-04-18", impactLevel: "medio", status: "nuevo", summary: "Se detecta criterio que refuerza la necesidad de registrar acuerdos, investigaciones y medidas adoptadas por el Comité Paritario.", applicabilityReason: "La empresa supera 25 trabajadores y requiere verificar constitución, funcionamiento y respaldo de actas.", officialUrl: "https://www.suseso.cl/613/w3-propertyvalue-69075.html", keyPoints: ["Deben mantenerse actas y seguimiento de acuerdos.", "El comité participa en investigación y vigilancia preventiva.", "La evidencia documental debe estar disponible en fiscalización."] }] },
   { code: "DT", label: "Dirección del Trabajo", officialUrl: "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-192736.html", remoteUrl: "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-194680.html", coverage: "Dictámenes, procedimientos y criterios laborales", mode: "snapshot", category: "Seguridad en el trabajo", keywords: ["seguridad", "salud", "trabajo", "acoso", "violencia", "protección"], items: [{ id: "upd-ley-karin", title: "Ley Karin y procedimiento de investigación por acoso, violencia y riesgos psicosociales", source: "DT", category: "Riesgos psicosociales", publishedAt: "2025-06-03", effectiveAt: "2024-08-01", impactLevel: "alto", status: "nuevo", summary: "La Dirección del Trabajo refuerza plazos y reglas del procedimiento de investigación, y exige medidas de resguardo y protocolos preventivos actualizados.", applicabilityReason: "Aplica porque la empresa cuenta con trabajadores dependientes, reglamento interno y obligación de prevención frente a acoso y violencia en el trabajo.", officialUrl: "https://www.dt.gob.cl/legislacion/1624/w3-propertyvalue-192736.html", keyPoints: ["Debe existir protocolo preventivo comunicado a toda la organización.", "Las investigaciones tienen plazos reglados y requieren resguardo documentado.", "Las medidas deben integrarse al reglamento interno o protocolo equivalente."] }] },
@@ -129,10 +64,9 @@ const sourceAdapters = [
   { code: "DO", label: "Diario Oficial", officialUrl: "https://www.diariooficial.interior.gob.cl", remoteUrl: "https://www.diariooficial.interior.gob.cl", coverage: "Publicación oficial de leyes, decretos y resoluciones", mode: "snapshot", category: "Publicación oficial", keywords: ["decreto", "ley", "resolución", "seguridad", "salud", "trabajo"], items: [{ id: "upd-do-publicacion-oficial", title: "Diario Oficial: publicación oficial de normas jurídicas", source: "DO", category: "Publicación oficial", publishedAt: "2026-04-18", effectiveAt: "2026-04-18", impactLevel: "medio", status: "monitoreado", summary: "El Diario Oficial es la fuente de publicación oficial para leyes, decretos y otras actuaciones jurídicas del Estado.", applicabilityReason: "Aplica para verificar vigencia y publicación oficial de cambios normativos relevantes en SST.", officialUrl: "https://www.diariooficial.interior.gob.cl/quienes-somos/", keyPoints: ["Permite confirmar publicación oficial de normas.", "Es clave para vigencia y trazabilidad jurídica.", "Debe usarse como control complementario de cambios."] }] },
 ];
 
-// Seed state
-const seedState: AppState = {
+var seedState = {
   companyProfile: { legalName: "Empresa Demo SST SpA", industry: "Servicios industriales y mantenimiento", headcount: 84, riskLevel: "III", hasContractors: true, sites: ["Casa Matriz Santiago", "Faena Antofagasta", "Bodega Renca"], administrator: "Mutual de Seguridad" },
-  updates: sourceAdapters.flatMap(a => a.items).filter(item => ["upd-ley-karin", "upd-ds-594", "upd-ley-16744"].includes(item.id)),
+  updates: sourceAdapters.flatMap(function(a: any) { return a.items; }).filter(function(item: any) { return ["upd-ley-karin", "upd-ds-594", "upd-ley-16744"].indexOf(item.id) >= 0; }),
   obligations: [
     { id: "obl-protocolo-karin", updateId: "upd-ley-karin", title: "Mantener protocolo de prevención y procedimiento de investigación vigente", area: "Personas y Cumplimiento", priority: "alto", applies: true, status: "en_progreso", basis: "Empresa con trabajadores dependientes y obligación de prevenir acoso, violencia y riesgos psicosociales.", howToComply: ["Actualizar el protocolo con medidas de prevención, denuncia, investigación y resguardo.", "Integrar o alinear el reglamento interno con el procedimiento vigente.", "Capacitar a jefaturas y registrar difusión a trabajadores."], evidence: ["Protocolo firmado y fechado.", "Registro de difusión y capacitaciones.", "Trazabilidad de denuncias y medidas de resguardo."], owner: "Gerencia de Personas", dueDate: "2026-05-15" },
     { id: "obl-inspeccion-ds594", updateId: "upd-ds-594", title: "Levantar matriz de condiciones sanitarias por centro de trabajo", area: "Operaciones", priority: "alto", applies: true, status: "pendiente", basis: "Todos los centros declarados requieren control verificable de higiene y ambiente laboral.", howToComply: ["Inspeccionar baños, agua potable, ventilación, iluminación y orden.", "Definir hallazgos, responsables y plazo de cierre por sede.", "Crear evidencia fotográfica y checklist trazable."], evidence: ["Checklist por sede.", "Plan de acción con fechas.", "Registros fotográficos y cierres."], owner: "Jefatura de Operaciones", dueDate: "2026-05-02" },
@@ -151,11 +85,12 @@ const seedState: AppState = {
   watchRequests: [{ id: "watch-default-1", topic: "ley karin", normalizedTopic: "ley karin", origin: "manual", status: "activo", createdAt: "2026-04-18T10:00:00.000Z", lastMatchedUpdateId: "upd-ley-karin" }],
 };
 
-// State management
-const databaseUrl = process.env.DATABASE_URL;
-let sql = databaseUrl ? neon(databaseUrl) : null;
-let appState: AppState = structuredClone(seedState);
-let initialized = false;
+var initialized = false;
+var databaseUrl = process.env.DATABASE_URL;
+if (databaseUrl) {
+  sql = neon(databaseUrl);
+}
+appState = JSON.parse(JSON.stringify(seedState));
 
 async function ensureDatabase() {
   if (!sql) return;
@@ -163,14 +98,17 @@ async function ensureDatabase() {
   await sql`CREATE TABLE IF NOT EXISTS app_snapshots (source text PRIMARY KEY, payload jsonb NOT NULL, updated_at timestamptz NOT NULL DEFAULT now())`;
 }
 
-async function loadStoredState(): Promise<AppState | null> {
+async function loadStoredState() {
   if (!sql) return null;
   await ensureDatabase();
-  const rows = await sql`SELECT payload FROM app_state WHERE id = 'default' LIMIT 1`;
-  return (rows[0] as { payload?: AppState } | undefined)?.payload ?? null;
+  var rows = await sql`SELECT payload FROM app_state WHERE id = 'default' LIMIT 1`;
+  if (rows && rows[0]) {
+    return rows[0].payload;
+  }
+  return null;
 }
 
-async function saveStoredState(state: AppState) {
+async function saveStoredState(state: any) {
   if (!sql) return;
   await ensureDatabase();
   await sql`INSERT INTO app_state (id, payload, updated_at) VALUES ('default', ${JSON.stringify(state)}::jsonb, now()) ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload, updated_at = now()`;
@@ -178,8 +116,10 @@ async function saveStoredState(state: AppState) {
 
 async function initializeService() {
   if (initialized) return;
-  const loaded = await loadStoredState();
-  if (loaded) appState = loaded;
+  var loaded = await loadStoredState();
+  if (loaded) {
+    appState = loaded;
+  }
   initialized = true;
 }
 
@@ -188,18 +128,27 @@ function normalizeTopic(topic: string) {
 }
 
 function buildDashboard() {
-  const applicable = appState.obligations.filter(o => o.applies);
-  const urgent = applicable.filter(o => o.priority === "alto" && o.status !== "cumplido");
-  const docsPending = appState.documents.filter(d => d.status !== "listo");
-  const coverageRate = applicable.length === 0 ? 0 : Math.round((applicable.filter(o => o.status === "cumplido").length / applicable.length) * 100);
+  var applicable = appState.obligations.filter(function(o: any) { return o.applies; });
+  var urgent = applicable.filter(function(o: any) { return o.priority === "alto" && o.status !== "cumplido"; });
+  var docsPending = appState.documents.filter(function(d: any) { return d.status !== "listo"; });
+  var totalObligations = applicable.length;
+  var fulfilledObligations = applicable.filter(function(o: any) { return o.status === "cumplido"; }).length;
+  var coverageRate = totalObligations === 0 ? 0 : Math.round((fulfilledObligations / totalObligations) * 100);
 
   return {
     generatedAt: new Date().toISOString(),
     companyProfile: appState.companyProfile,
-    stats: { monitoredSources: sourceAdapters.length, totalUpdates: appState.updates.length, applicableObligations: applicable.length, urgentActions: urgent.length, pendingDocuments: docsPending.length, coverageRate },
+    stats: {
+      monitoredSources: sourceAdapters.length,
+      totalUpdates: appState.updates.length,
+      applicableObligations: applicable.length,
+      urgentActions: urgent.length,
+      pendingDocuments: docsPending.length,
+      coverageRate: coverageRate
+    },
     scheduler: { enabled: true, intervalMinutes: 1440, nextRunAt: new Date(Date.now() + 86400000).toISOString(), statePath: sql ? "postgres" : "memory" },
-    sourceMonitors: sourceAdapters.map(a => ({ code: a.code, label: a.label, officialUrl: a.officialUrl, coverage: a.coverage, mode: a.mode, snapshotCount: a.items.length, lastRunAt: null, lastStatus: "idle" })),
-    industryOptions,
+    sourceMonitors: sourceAdapters.map(function(a: any) { return { code: a.code, label: a.label, officialUrl: a.officialUrl, coverage: a.coverage, mode: a.mode, snapshotCount: a.items.length, lastRunAt: null, lastStatus: "idle" }; }),
+    industryOptions: industryOptions,
     watchRequests: appState.watchRequests,
     updates: appState.updates,
     obligations: appState.obligations,
@@ -210,275 +159,218 @@ function buildDashboard() {
   };
 }
 
-// AI Prompts
 function buildPrompt(action: string, items: any[]): string {
-  const companyInfo = `Empresa: ${appState.companyProfile.legalName}, Rubro: ${appState.companyProfile.industry}, Dotación: ${appState.companyProfile.headcount} trabajadores, Nivel de riesgo: ${appState.companyProfile.riskLevel}`;
+  var companyInfo = "Empresa: " + appState.companyProfile.legalName + ", Rubro: " + appState.companyProfile.industry + ", Dotación: " + appState.companyProfile.headcount + " trabajadores, Nivel de riesgo: " + appState.companyProfile.riskLevel;
 
-  switch (action) {
-    case "analyze":
-      const updatesText = items.map((u, i) => `${i+1}. ${u.title} (${u.category}): ${u.summary}`).join("\n");
-      return `Eres un asesor SST experto en normativa chilena. Analiza TODAS las siguientes normativas y responde en JSON:
-
-{
-  "analisis": [
-    {"id": "id-de-la-norma", "aplicabilidad": "explica brevemente si aplica", "nivelImpacto": "alto/medio/bajo", "plazoRecomendado": "días/meses"},
-    ...
-  ],
-  "resumenEjecutivo": "resumen de los hallazgos principales"
-}
-
-Normativas a analizar:
-${updatesText}
-
-Empresa: ${companyInfo}
-
-Responde SOLO con JSON válido.`;
-
-    case "summarize":
-      const summaryText = items.map((u, i) => `${i+1}. ${u.title}\nCategoría: ${u.category}\nResumen: ${u.summary}\nPuntos clave: ${u.keyPoints?.join(", ") || "N/A"}\n---`).join("\n");
-      return `Eres un asesor SST chileno. Resume TODAS las siguientes normativas en términos simples para trabajadores no técnicos:
-
-${summaryText}
-
-Para cada una incluye:
-- ¿De qué se trata?
-- ¿Qué debe hacer la empresa?
-- ¿Qué pasa si no se cumple?
-
-Sé conciso y usa lenguaje simple.`;
-
-    case "recommend":
-      const obligationsText = items.map((o, i) => `${i+1}. ${o.title}\nÁrea: ${o.area}\nBase legal: ${o.basis}\nEstado: ${o.status}\nResponsable: ${o.owner}\nVencimiento: ${o.dueDate}`).join("\n\n");
-      return `Eres un asesor SST chileno. Para TODAS las siguientes obligaciones, sugiere:
-
-${obligationsText}
-
-Para cada una proporciona:
-- 3-5 pasos específicos para cumplir
-- 2-3 evidencias necesarias
-- Responsable típico
-- Plazo estimado
-
-Responde en español de forma estructurada, numerando cada obligación y sus recomendaciones.`;
-
-    case "generate":
-      const generateText = items.map((o, i) => `${i+1}. ${o.title}\nÁrea: ${o.area}\nBase legal: ${o.basis}\nResponsable: ${o.owner}\nVencimiento: ${o.dueDate}`).join("\n\n");
-      return `Eres un asesor SST chileno. Genera un PLAN DE ACCIÓN completo en formato markdown para cumplir con TODAS las siguientes obligaciones:
-
-${generateText}
-Empresa: ${companyInfo}
-
-Para cada obligación incluye:
-## [Número] - [Título]
-### Objetivo
-### Actividades (con responsables y plazos)
-### Evidencias requeridas
-### Checkpoints de verificación
-
-Genera contenido práctico y accionable.`;
-
-    default:
-      throw new Error("Acción no válida");
+  if (action === "analyze") {
+    var updatesText = items.map(function(u: any, i: number) { return (i+1) + ". " + u.title + " (" + u.category + "): " + u.summary; }).join("\n");
+    return "Eres un asesor SST experto en normativa chilena. Analiza TODAS las siguientes normativas:\n\n" + updatesText + "\n\nEmpresa: " + companyInfo + "\n\nPara cada una indica: aplicabilidad, nivel de impacto (alto/medio/bajo), y plazo recomendado.";
   }
+  if (action === "summarize") {
+    var summaryText = items.map(function(u: any, i: number) { return (i+1) + ". " + u.title + "\nCategoría: " + u.category + "\nResumen: " + u.summary; }).join("\n---\n");
+    return "Eres un asesor SST chileno. Resume en términos simples:\n\n" + summaryText + "\n\nPara cada una incluye: de qué se trata, qué debe hacer la empresa, qué pasa si no se cumple.";
+  }
+  if (action === "recommend") {
+    var obligationsText = items.map(function(o: any, i: number) { return (i+1) + ". " + o.title + "\nÁrea: " + o.area + "\nBase: " + o.basis; }).join("\n\n");
+    return "Eres un asesor SST chileno. Para estas obligaciones, sugiere 3-5 pasos para cumplir y 2-3 evidencias:\n\n" + obligationsText;
+  }
+  if (action === "generate") {
+    var generateText = items.map(function(o: any, i: number) { return (i+1) + ". " + o.title + "\nResponsable: " + o.owner + "\nVencimiento: " + o.dueDate; }).join("\n\n");
+    return "Eres un asesor SST chileno. Genera un PLAN DE ACCIÓN en markdown para:\n\n" + generateText + "\n\nEmpresa: " + companyInfo + "\n\nIncluye: objetivo, actividades con plazos, evidencias y checkpoints.";
+  }
+  return "Acción inválida";
 }
 
-// DOCX Generator
 async function generateObligationDOCX(obligation: any): Promise<Buffer> {
-  const doc = new Document({
+  var doc = new Document({
     sections: [{
       properties: {},
       children: [
         new Paragraph({ text: "PLAN DE ACCIÓN SST", heading: HeadingLevel.HEADING_1 }),
         new Paragraph({ text: obligation.title, heading: HeadingLevel.HEADING_2 }),
         new Paragraph({ children: [new TextRun({ text: "Información General", bold: true })] }),
-        new Paragraph({ text: `Área: ${obligation.area}` }),
-        new Paragraph({ text: `Prioridad: ${obligation.priority}` }),
-        new Paragraph({ text: `Estado: ${obligation.status}` }),
-        new Paragraph({ text: `Responsable: ${obligation.owner}` }),
-        new Paragraph({ text: `Vencimiento: ${obligation.dueDate}` }),
-        new Paragraph({ text: `Base Legal: ${obligation.basis}` }),
+        new Paragraph({ text: "Área: " + obligation.area }),
+        new Paragraph({ text: "Prioridad: " + obligation.priority }),
+        new Paragraph({ text: "Estado: " + obligation.status }),
+        new Paragraph({ text: "Responsable: " + obligation.owner }),
+        new Paragraph({ text: "Vencimiento: " + obligation.dueDate }),
+        new Paragraph({ text: "Base Legal: " + obligation.basis }),
         new Paragraph({ children: [new TextRun({ text: "", break: 1 })] }),
         new Paragraph({ children: [new TextRun({ text: "Cómo Cumplir", bold: true })] }),
-        ...obligation.howToComply.map((step: string) => new Paragraph({ text: `- ${step}` })),
-        new Paragraph({ children: [new TextRun({ text: "", break: 1 })] }),
-        new Paragraph({ children: [new TextRun({ text: "Evidencias Requeridas", bold: true })] }),
-        ...obligation.evidence.map((ev: string) => new Paragraph({ text: `- ${ev}` })),
       ],
     }],
   });
+  var steps = obligation.howToComply || [];
+  for (var i = 0; i < steps.length; i++) {
+    doc.sections[0].children.push(new Paragraph({ text: "- " + steps[i] }));
+  }
+  doc.sections[0].children.push(new Paragraph({ children: [new TextRun({ text: "", break: 1 })] }));
+  doc.sections[0].children.push(new Paragraph({ children: [new TextRun({ text: "Evidencias Requeridas", bold: true })] }));
+  var evs = obligation.evidence || [];
+  for (var j = 0; j < evs.length; j++) {
+    doc.sections[0].children.push(new Paragraph({ text: "- " + evs[j] }));
+  }
   return await Packer.toBuffer(doc);
 }
 
-// Express-like router
 function route(req: VercelRequest, res: VercelResponse) {
-  const { method, url } = req;
-  const path = url?.split("?")[0] ?? "/";
+  var method = req.method;
+  var url = req.url || "/";
+  var path = url.split("?")[0];
 
-  // Health
   if (path === "/api/health" && method === "GET") {
     return res.json({ status: "ok" });
   }
 
-  // AI Status
   if (path === "/api/ai-status" && method === "GET") {
     return res.json(checkAILimit());
   }
 
-  if (path === "/api/ai-models" && method === "GET") {
-    try {
-      const models = await listAvailableModels();
-      return res.json({ models });
-    } catch (err: any) {
-      return res.status(500).json({ error: err.message });
-    }
-  }
-
-  // AI Analyze
   if (path === "/api/ai-analyze" && method === "POST") {
-    const { canUse } = checkAILimit();
-    if (!canUse) {
-      return res.status(429).json({ error: "Límite diario de IA alcanzado", ...checkAILimit() });
+    var limit = checkAILimit();
+    if (!limit.canUse) {
+      return res.status(429).json({ error: "Límite diario de IA alcanzado", ...limit });
     }
 
-    return initializeService().then(async () => {
+    return initializeService().then(async function() {
       try {
-        const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-        const { action } = body;
+        var body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+        var action = body.action;
 
-        if (!action || !["analyze", "summarize", "recommend", "generate"].includes(action)) {
-          return res.status(400).json({ error: "Acción inválida. Use: analyze, summarize, recommend, generate" });
+        if (!action || ["analyze", "summarize", "recommend", "generate"].indexOf(action) < 0) {
+          return res.status(400).json({ error: "Acción inválida" });
         }
 
-        // Select items based on action
-        let items: any[];
-        let itemType: string;
-        if (action === "analyze" || action === "summarize") {
-          items = appState.updates;
-          itemType = "normativas";
-        } else {
-          items = appState.obligations;
-          itemType = "obligaciones";
-        }
+        var items = (action === "analyze" || action === "summarize") ? appState.updates : appState.obligations;
+        var itemType = (action === "analyze" || action === "summarize") ? "normativas" : "obligaciones";
 
         if (items.length === 0) {
-          return res.status(400).json({ error: `No hay ${itemType} para analizar` });
+          return res.status(400).json({ error: "No hay " + itemType + " para analizar" });
         }
 
-        const prompt = buildPrompt(action, items);
-        const result = await callGemini(prompt);
+        var prompt = buildPrompt(action, items);
+        var result = await callGemini(prompt);
 
         recordAIUsage();
 
         return res.json({
-          action,
-          itemType,
+          action: action,
+          itemType: itemType,
           itemCount: items.length,
-          result,
+          result: result,
           usage: checkAILimit(),
           analyzedAt: new Date().toISOString(),
         });
       } catch (error: any) {
-        return res.status(500).json({ error: error.message || "Error al procesar con IA" });
+        return res.status(500).json({ error: error.message });
       }
-    }).catch(err => res.status(500).json({ error: err.message }));
+    }).catch(function(err: any) { return res.status(500).json({ error: err.message }); });
   }
 
-  // Dashboard
   if (path === "/api/dashboard" && method === "GET") {
-    return initializeService().then(() => res.json(buildDashboard())).catch(err => res.status(500).json({ error: err.message }));
+    return initializeService().then(function() { return res.json(buildDashboard()); }).catch(function(err: any) { return res.status(500).json({ error: err.message }); });
   }
 
-  // Sources
   if (path === "/api/sources" && method === "GET") {
-    return initializeService().then(() => res.json({ generatedAt: new Date().toISOString(), sources: sourceAdapters.map(a => ({ code: a.code, label: a.label, officialUrl: a.officialUrl, coverage: a.coverage, mode: a.mode, snapshotCount: a.items.length, lastRunAt: null, lastStatus: "idle" })) })).catch(err => res.status(500).json({ error: err.message }));
+    return initializeService().then(function() {
+      return res.json({
+        generatedAt: new Date().toISOString(),
+        sources: sourceAdapters.map(function(a: any) { return { code: a.code, label: a.label, officialUrl: a.officialUrl, coverage: a.coverage, mode: a.mode, snapshotCount: a.items.length, lastRunAt: null, lastStatus: "idle" }; })
+      });
+    }).catch(function(err: any) { return res.status(500).json({ error: err.message }); });
   }
 
-  // Scan
   if (path === "/api/scan" && method === "POST") {
-    return initializeService().then(() => res.json(buildDashboard())).catch(err => res.status(500).json({ error: err.message }));
+    return initializeService().then(function() { return res.json(buildDashboard()); }).catch(function(err: any) { return res.status(500).json({ error: err.message }); });
   }
 
-  // Company Profile
   if (path === "/api/company-profile" && method === "POST") {
-    return initializeService().then(async () => {
-      const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    return initializeService().then(async function() {
+      var b = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
       appState.companyProfile = {
-        legalName: String(body?.legalName ?? appState.companyProfile.legalName).trim(),
-        industry: String(body?.industry ?? appState.companyProfile.industry).trim(),
-        headcount: Number.isFinite(Number(body?.headcount)) ? Math.max(1, Number(body?.headcount)) : appState.companyProfile.headcount,
-        riskLevel: String(body?.riskLevel ?? appState.companyProfile.riskLevel).trim(),
-        hasContractors: Boolean(body?.hasContractors ?? appState.companyProfile.hasContractors),
-        sites: Array.isArray(body?.sites) ? body.sites.map((s: string) => s.trim()).filter(Boolean) : appState.companyProfile.sites,
-        administrator: String(body?.administrator ?? appState.companyProfile.administrator).trim(),
+        legalName: String(b.legalName || appState.companyProfile.legalName).trim(),
+        industry: String(b.industry || appState.companyProfile.industry).trim(),
+        headcount: Number.isFinite(Number(b.headcount)) ? Math.max(1, Number(b.headcount)) : appState.companyProfile.headcount,
+        riskLevel: String(b.riskLevel || appState.companyProfile.riskLevel).trim(),
+        hasContractors: Boolean(b.hasContractors !== undefined ? b.hasContractors : appState.companyProfile.hasContractors),
+        sites: Array.isArray(b.sites) ? b.sites.map(function(s: string) { return s.trim(); }).filter(Boolean) : appState.companyProfile.sites,
+        administrator: String(b.administrator || appState.companyProfile.administrator).trim(),
       };
       await saveStoredState(appState);
       res.json(buildDashboard());
-    }).catch(err => res.status(500).json({ error: err.message }));
+    }).catch(function(err: any) { return res.status(500).json({ error: err.message }); });
   }
 
-  // Watch Requests
   if (path === "/api/watch-requests" && method === "POST") {
-    return initializeService().then(async () => {
-      const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-      const topic = String(body?.topic ?? "").trim();
+    return initializeService().then(async function() {
+      var b = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+      var topic = String(b.topic || "").trim();
       if (!topic) return res.status(400).json({ error: "Tema inválido." });
-      const normalizedTopic = normalizeTopic(topic);
-      if (!appState.watchRequests.find(w => w.normalizedTopic === normalizedTopic)) {
-        appState.watchRequests.unshift({ id: `watch-${Date.now()}-${normalizedTopic.replace(/\s+/g, "-")}`, topic, normalizedTopic, origin: "manual", status: "activo", createdAt: new Date().toISOString(), lastMatchedUpdateId: null });
+      var normalizedTopic = normalizeTopic(topic);
+      var exists = appState.watchRequests.some(function(w: any) { return w.normalizedTopic === normalizedTopic; });
+      if (!exists) {
+        appState.watchRequests.unshift({
+          id: "watch-" + Date.now() + "-" + normalizedTopic.replace(/\s+/g, "-"),
+          topic: topic,
+          normalizedTopic: normalizedTopic,
+          origin: "manual",
+          status: "activo",
+          createdAt: new Date().toISOString(),
+          lastMatchedUpdateId: null
+        });
         await saveStoredState(appState);
       }
       res.json(buildDashboard());
-    }).catch(err => res.status(500).json({ error: err.message }));
+    }).catch(function(err: any) { return res.status(500).json({ error: err.message }); });
   }
 
   if (path.startsWith("/api/watch-requests/") && method === "PATCH") {
-    return initializeService().then(async () => {
-      const id = path.split("/")[3];
-      const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-      const status = body?.status;
-      if (!status || !["activo", "cubierto", "en_revision"].includes(status)) return res.status(400).json({ error: "Estado inválido." });
-      const watch = appState.watchRequests.find(w => w.id === id);
+    return initializeService().then(async function() {
+      var parts = path.split("/");
+      var id = parts[3];
+      var b = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+      var status = b.status;
+      if (!status || ["activo", "cubierto", "en_revision"].indexOf(status) < 0) return res.status(400).json({ error: "Estado inválido." });
+      var watch = appState.watchRequests.find(function(w: any) { return w.id === id; });
       if (!watch) return res.status(404).json({ error: "Solicitud no encontrada." });
       watch.status = status;
       await saveStoredState(appState);
       res.json(buildDashboard());
-    }).catch(err => res.status(500).json({ error: err.message }));
+    }).catch(function(err: any) { return res.status(500).json({ error: err.message }); });
   }
 
-  // Obligations
   if (path.startsWith("/api/obligations/") && method === "PATCH") {
-    return initializeService().then(async () => {
-      const id = path.split("/")[3];
-      const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-      const status = body?.status;
-      if (!status || !["pendiente", "en_progreso", "cumplido"].includes(status)) return res.status(400).json({ error: "Estado inválido." });
-      const obligation = appState.obligations.find(o => o.id === id);
+    return initializeService().then(async function() {
+      var parts = path.split("/");
+      var id = parts[3];
+      var b = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+      var status = b.status;
+      if (!status || ["pendiente", "en_progreso", "cumplido"].indexOf(status) < 0) return res.status(400).json({ error: "Estado inválido." });
+      var obligation = appState.obligations.find(function(o: any) { return o.id === id; });
       if (!obligation) return res.status(404).json({ error: "Obligación no encontrada." });
       obligation.status = status;
       await saveStoredState(appState);
       res.json(buildDashboard());
-    }).catch(err => res.status(500).json({ error: err.message }));
+    }).catch(function(err: any) { return res.status(500).json({ error: err.message }); });
   }
 
-  // Export
   if (path === "/api/export" && method === "GET") {
-    return initializeService().then(() => {
-      res.setHeader("Content-Disposition", `attachment; filename="radar-sst-state-${new Date().toISOString().slice(0, 10)}.json"`);
+    return initializeService().then(function() {
+      res.setHeader("Content-Disposition", "attachment; filename=\"radar-sst-state-" + new Date().toISOString().slice(0, 10) + ".json\"");
       res.setHeader("Content-Type", "application/json");
       res.json(appState);
-    }).catch(err => res.status(500).json({ error: err.message }));
+    }).catch(function(err: any) { return res.status(500).json({ error: err.message }); });
   }
 
-  // Document Generation (DOCX)
   if (path.match(/^\/api\/documents\/[^/]+\/generate$/) && method === "POST") {
-    return initializeService().then(async () => {
-      const parts = path.split("/");
-      const docId = parts[2];
-      const document = appState.documents.find(d => d.id === docId);
+    return initializeService().then(async function() {
+      var parts = path.split("/");
+      var docId = parts[2];
+      var document = appState.documents.find(function(d: any) { return d.id === docId; });
       if (!document) return res.status(404).json({ error: "Documento no encontrado." });
 
       try {
-        const buffer = await generateObligationDOCX({
+        var buffer = await generateObligationDOCX({
           title: document.name,
           area: document.type,
           priority: "N/A",
@@ -490,27 +382,26 @@ function route(req: VercelRequest, res: VercelResponse) {
           dueDate: document.lastGeneratedAt || new Date().toISOString(),
         });
 
-        res.setHeader("Content-Disposition", `attachment; filename="${document.name.replace(/\s+/g, "-")}.docx"`);
+        res.setHeader("Content-Disposition", "attachment; filename=\"" + document.name.replace(/\s+/g, "-") + ".docx\"");
         res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
         res.send(buffer);
       } catch (error: any) {
         return res.status(500).json({ error: error.message });
       }
-    }).catch(err => res.status(500).json({ error: err.message }));
+    }).catch(function(err: any) { return res.status(500).json({ error: err.message }); });
   }
 
-  // Reset
   if (path === "/api/reset" && method === "POST") {
-    return initializeService().then(async () => {
-      appState = structuredClone(seedState);
+    return initializeService().then(async function() {
+      appState = JSON.parse(JSON.stringify(seedState));
       await saveStoredState(appState);
       res.json(buildDashboard());
-    }).catch(err => res.status(500).json({ error: err.message }));
+    }).catch(function(err: any) { return res.status(500).json({ error: err.message }); });
   }
 
   res.status(404).json({ error: "Not found" });
 }
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
-  initializeService().then(() => route(req, res)).catch(err => res.status(500).json({ error: err.message }));
+  initializeService().then(function() { route(req, res); }).catch(function(err: any) { res.status(500).json({ error: err.message }); });
 }
