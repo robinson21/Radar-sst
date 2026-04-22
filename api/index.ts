@@ -27,7 +27,7 @@ function recordAIUsage() {
 
 async function callGemini(prompt: string): Promise<string> {
   if (!GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY no está configurada. Configure la variable de entorno en Vercel.");
+    return "[AI DESACTIVADA] GEMINI_API_KEY no está configurada en Vercel. Ve a Settings → Environment Variables para configurarla.";
   }
   var url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY;
   var response = await fetch(url, {
@@ -44,6 +44,20 @@ async function callGemini(prompt: string): Promise<string> {
   }
   var data = await response.json();
   return data.candidates[0].content.parts[0].text || "";
+}
+
+function buildFallbackResult(action: string, items: any[]): string {
+  if (action === "analyze") {
+    return "## Análisis de Normativas SST\n\n**empresa demo sst spa** (Servicios industriales y mantenimiento, 84 trabajadores)\n\n### Resumen de Analisis\n\n| Normativa | Impacto | Plazo | Estado |\n|-----------|---------|-------|--------|\n| Ley Karin - Prevencion acoso y violencia | Alto | 30 dias | Nuevo |\n| DS 594 - Condiciones sanitarias basicas | Alto | 60 dias | Monitoreado |\n| Ley 16.744 - Gestion preventiva | Medio | 90 dias | En revision |\n\n### Recomendaciones\n\n1. **Prioridad Alta**: Actualizar protocolo de prevencion de acoso (Ley Karin)\n2. **Prioridad Media**: Levantar matriz de condiciones sanitarias por centro\n3. **Prioridad Media**: Formalizar programa anual de trabajo preventivo\n\n_Nota: Este es un analisis de ejemplo. Configure GEMINI_API_KEY para analisis con IA real._";
+  }
+  if (action === "summarize") {
+    return "## Resumen de Normativas SST\n\n### Ley Karin (Alto Impacto)\n**¿De qué se trata?** Refuerza la obligacion de prevenir, investigar y actuar frente a acoso, violencia y riesgos psicosociales.\n\n**¿Qué debe hacer la empresa?**\n- Contar con protocolo preventivo actualizado\n- Investigar denuncias dentro de plazos legales\n- Implementar medidas de resguardo\n\n**¿Qué pasa si no se cumple?** Sanciones de la Direction del Trabajo y responsabilidad laboral.\n\n### DS 594 (Alto Impacto)\n**¿De qué se trata?** Condiciones sanitarias y ambientales basicas en lugares de trabajo.\n\n**¿Qué debe hacer la empresa?**\n- Mantener servicios higienicos adecuados\n- Controlar ventilacion, iluminacion y condiciones ambientales\n- Registrar evidencia de cumplimiento\n\n**¿Qué pasa si no se cumple?** Fiscalizacion sanitaria y closure de centro de trabajo.\n\n_Nota: Este es un resumen de ejemplo. Configure GEMINI_API_KEY para resumenes con IA real._";
+  }
+  if (action === "recommend") {
+    var obligation = items.length > 0 ? items[0] : {};
+    return "## Recomendaciones de Cumplimiento\n\n### " + (obligation.title || "Obligacion seleccionada") + "\n\n**Pasos recomendados:**\n1. Revisar normativa vigente y requisitos especificos\n2. Identificar responsable y plazos segun criticidad\n3. Documentar evidencia de cumplimiento\n4. Registrar seguimiento y cierre\n\n**Evidencias sugeridas:**\n- Documentos firmados y fechados\n- Registros fotograficos\n- Actas de reunion\n- Checklists firmados\n\n**Responsable tipico:** " + (obligation.owner || "Gerencia de Personas") + "\n\n_Nota: Estas son recomendaciones de ejemplo. Configure GEMINI_API_KEY para recomendaciones con IA real._";
+  }
+  return "## Plan de Accion\n\n### Acciones Prioritarias\n\n1. **Mantener protocolo de prevencion Ley Karin** - Prioridad: Alta - Vence: 2026-05-15\n2. **Levantar matriz de condiciones sanitarias** - Prioridad: Alta - Vence: 2026-05-02\n3. **Formalizar programa anual preventivo** - Prioridad: Media - Vence: 2026-05-20\n\n_Nota: Este es un plan de ejemplo. Configure GEMINI_API_KEY para planes generados con IA real._";
 }
 
 var industryOptions = [
@@ -249,9 +263,11 @@ function route(req: VercelRequest, res: VercelResponse) {
         }
 
         var prompt = buildPrompt(action, items);
-        var result = await callGemini(prompt);
+        var result = GEMINI_API_KEY ? await callGemini(prompt) : buildFallbackResult(action, items);
 
-        recordAIUsage();
+        if (GEMINI_API_KEY) {
+          recordAIUsage();
+        }
 
         return res.json({
           action: action,
